@@ -1,32 +1,51 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Public">
-      <UniqueIdentifier>{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}</UniqueIdentifier>
+    <Filter Include="00. Header">
+      <UniqueIdentifier>{c83f4692-2c63-4f62-bd15-0fae2de04b93}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Private">
-      <UniqueIdentifier>{B2C3D4E5-F6A7-8901-BCDE-F12345678901}</UniqueIdentifier>
+    <Filter Include="02. Device">
+      <UniqueIdentifier>{b29d8f85-21fd-41db-97fa-74fc737015af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Module">
+      <UniqueIdentifier>{bb753f8a-15d6-45b6-b2cc-8660520d3ad9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Private\framework.h">
-      <Filter>Private</Filter>
+    <ClInclude Include="private\pch.h">
+      <Filter>00. Header</Filter>
     </ClInclude>
-    <ClInclude Include="Private\pch.h">
-      <Filter>Private</Filter>
+    <ClInclude Include="Public\Types.h">
+      <Filter>00. Header</Filter>
+    </ClInclude>
+    <ClInclude Include="public\Engine.h">
+      <Filter>01. Module</Filter>
+    </ClInclude>
+    <ClInclude Include="private\Device11.h">
+      <Filter>02. Device</Filter>
+    </ClInclude>
+    <ClInclude Include="private\Device12.h">
+      <Filter>02. Device</Filter>
+    </ClInclude>
+    <ClInclude Include="public\IDevice.h">
+      <Filter>02. Device</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Private\Engine.cpp">
-      <Filter>Private</Filter>
-    </ClCompile>
     <ClCompile Include="Private\pch.cpp">
-      <Filter>Private</Filter>
+      <Filter>00. Header</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Public\.gitkeep">
-      <Filter>Public</Filter>
-    </None>
+    <ClCompile Include="private\Engine.cpp">
+      <Filter>01. Module</Filter>
+    </ClCompile>
+    <ClCompile Include="private\Device11.cpp">
+      <Filter>02. Device</Filter>
+    </ClCompile>
+    <ClCompile Include="private\Device12.cpp">
+      <Filter>02. Device</Filter>
+    </ClCompile>
+    <ClCompile Include="private\IDevice.cpp">
+      <Filter>02. Device</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -159,20 +159,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Private\framework.h" />
-    <ClInclude Include="Private\pch.h" />
+    <ClInclude Include="private\Device11.h" />
+    <ClInclude Include="private\Device12.h" />
+    <ClInclude Include="private\pch.h" />
+    <ClInclude Include="public\Engine.h" />
+    <ClInclude Include="public\IDevice.h" />
+    <ClInclude Include="Public\Types.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Private\Engine.cpp" />
+    <ClCompile Include="private\Device11.cpp" />
+    <ClCompile Include="private\Device12.cpp" />
+    <ClCompile Include="private\Engine.cpp" />
+    <ClCompile Include="private\IDevice.cpp" />
     <ClCompile Include="Private\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Public\.gitkeep" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

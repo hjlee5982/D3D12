@@ -1,6 +1,22 @@
-#ifndef PCH_H
-#define PCH_H
+#pragma once
 
-#include "framework.h"
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 
-#endif //PCH_H
+#include <Windows.h>
+#include <memory>
+
+#include <d3d11.h>
+#include <d3dcompiler.h>
+#include <d3d11shader.h>
+#include <wrl.h>
+#include <dxgi.h>
+#include <wrl/client.h>
+
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "dxgi.lib")
+
+using namespace Microsoft::WRL;
+
+#include "Types.h"

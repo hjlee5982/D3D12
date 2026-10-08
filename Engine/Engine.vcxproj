@@ -162,14 +162,22 @@
     <ClInclude Include="private\Device11.h" />
     <ClInclude Include="private\Device12.h" />
     <ClInclude Include="private\pch.h" />
+    <ClInclude Include="public\Component.h" />
     <ClInclude Include="public\Engine.h" />
+    <ClInclude Include="public\GameObject.h" />
     <ClInclude Include="public\IDevice.h" />
+    <ClInclude Include="public\Scene.h" />
+    <ClInclude Include="public\SimpleMath.h" />
+    <ClInclude Include="public\Timer.h" />
+    <ClInclude Include="public\Transform.h" />
     <ClInclude Include="Public\Types.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="private\Component.cpp" />
     <ClCompile Include="private\Device11.cpp" />
     <ClCompile Include="private\Device12.cpp" />
     <ClCompile Include="private\Engine.cpp" />
+    <ClCompile Include="private\GameObject.cpp" />
     <ClCompile Include="private\IDevice.cpp" />
     <ClCompile Include="Private\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -177,6 +185,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="private\Scene.cpp" />
+    <ClCompile Include="private\Timer.cpp" />
+    <ClCompile Include="private\Transform.cpp" />
+    <ClCompile Include="public\SimpleMath.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="public\SimpleMath.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

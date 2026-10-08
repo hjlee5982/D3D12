@@ -10,6 +10,33 @@
     <Filter Include="01. Module">
       <UniqueIdentifier>{bb753f8a-15d6-45b6-b2cc-8660520d3ad9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="03. Timer">
+      <UniqueIdentifier>{e8a1c2d3-4b5c-6d7e-8f90-a1b2c3d4e5f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. Scene">
+      <UniqueIdentifier>{f1a2b3c4-d5e6-7890-abcd-ef1234567890}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. Device\00. DirectX11">
+      <UniqueIdentifier>{90e705a2-2ac0-40e8-99dc-2112968c1909}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. Device\01. DirectX12">
+      <UniqueIdentifier>{daf1a3af-5d06-4c5b-b91e-1c1ca69bbe6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. Device\00. DirectX11\Buffer">
+      <UniqueIdentifier>{b1fdcc1f-2cc0-4318-915f-f85b79a55f01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Lib">
+      <UniqueIdentifier>{04fc3ed1-3d36-4dcf-9119-09e50802c205}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Lib\SimpleMath">
+      <UniqueIdentifier>{330b1b2a-4b2f-4d10-a39f-7203c78d67d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. GameObject">
+      <UniqueIdentifier>{f67953d3-1098-46c2-9fcf-e3bffbdeb281}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06. Component">
+      <UniqueIdentifier>{a3afcbd6-8a10-4600-8781-796ad1cd1356}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="private\pch.h">
@@ -21,14 +48,32 @@
     <ClInclude Include="public\Engine.h">
       <Filter>01. Module</Filter>
     </ClInclude>
-    <ClInclude Include="private\Device11.h">
-      <Filter>02. Device</Filter>
+    <ClInclude Include="public\Timer.h">
+      <Filter>03. Timer</Filter>
     </ClInclude>
-    <ClInclude Include="private\Device12.h">
-      <Filter>02. Device</Filter>
+    <ClInclude Include="public\Scene.h">
+      <Filter>04. Scene</Filter>
     </ClInclude>
     <ClInclude Include="public\IDevice.h">
       <Filter>02. Device</Filter>
+    </ClInclude>
+    <ClInclude Include="private\Device11.h">
+      <Filter>02. Device\00. DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="private\Device12.h">
+      <Filter>02. Device\00. DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="public\SimpleMath.h">
+      <Filter>99. Lib\SimpleMath</Filter>
+    </ClInclude>
+    <ClInclude Include="public\GameObject.h">
+      <Filter>05. GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="public\Component.h">
+      <Filter>06. Component</Filter>
+    </ClInclude>
+    <ClInclude Include="public\Transform.h">
+      <Filter>06. Component</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -38,14 +83,37 @@
     <ClCompile Include="private\Engine.cpp">
       <Filter>01. Module</Filter>
     </ClCompile>
-    <ClCompile Include="private\Device11.cpp">
-      <Filter>02. Device</Filter>
+    <ClCompile Include="private\Timer.cpp">
+      <Filter>03. Timer</Filter>
     </ClCompile>
-    <ClCompile Include="private\Device12.cpp">
-      <Filter>02. Device</Filter>
+    <ClCompile Include="private\Scene.cpp">
+      <Filter>04. Scene</Filter>
     </ClCompile>
     <ClCompile Include="private\IDevice.cpp">
       <Filter>02. Device</Filter>
     </ClCompile>
+    <ClCompile Include="private\Device11.cpp">
+      <Filter>02. Device\00. DirectX11</Filter>
+    </ClCompile>
+    <ClCompile Include="private\Device12.cpp">
+      <Filter>02. Device\00. DirectX11</Filter>
+    </ClCompile>
+    <ClCompile Include="public\SimpleMath.cpp">
+      <Filter>99. Lib\SimpleMath</Filter>
+    </ClCompile>
+    <ClCompile Include="private\GameObject.cpp">
+      <Filter>05. GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="private\Component.cpp">
+      <Filter>06. Component</Filter>
+    </ClCompile>
+    <ClCompile Include="private\Transform.cpp">
+      <Filter>06. Component</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="public\SimpleMath.inl">
+      <Filter>99. Lib\SimpleMath</Filter>
+    </None>
   </ItemGroup>
 </Project>

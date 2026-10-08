@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Engine.h"
+#include "GameHost.h"
 
 namespace
 {
@@ -9,6 +10,7 @@ namespace
 	constexpr i32   kDefaultHeight     = 720;
 
 	std::unique_ptr<Engine> kEngine = nullptr;
+	GameHost kGame;
 
 	LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
@@ -83,19 +85,35 @@ namespace
 
 i32 WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ i32 showCommand)
 {
+	// Create Window
 	HWND hWnd = CreateClientWindow(instance, showCommand);
 	if (hWnd == nullptr)
 	{
 		return 1;
 	}
-	
-	kEngine = std::make_unique<Engine>(11);
 
-	if (!kEngine->EngineInitialize(hWnd))
+	// Initialize Engine
 	{
-		DestroyWindow(hWnd);
-		return 1;
+		kEngine = std::make_unique<Engine>(11);
+		if (!kEngine->EngineInitialize(hWnd))
+		{
+			DestroyWindow(hWnd);
+			return 1;
+		}
+
+		kEngine->SetTargetFPS(30);
 	}
+	
+	// Link Game
+	{
+		if (!kGame.Load(L"Game.dll") || !kGame.Initialize())
+		{
+			kEngine->EngineShutdown();
+			DestroyWindow(hWnd);
+			return 1;
+		}
+	}
+	
 
 	bool running = true;
 	while (running)
@@ -117,12 +135,21 @@ i32 WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE, _In_ LPWSTR, _I
 		{
 			break;
 		}
-		
-		kEngine->EngineRenderBegin();
 
+		kEngine->EngineUpdate();
+
+		const f32 deltaTime = kEngine->GetDeltaTime();
+		kGame.Update(deltaTime);
+		kGame.LateUpdate(deltaTime);
+
+		kEngine->EngineRenderBegin();
 		kEngine->EngineRenderEnd();
+
+		kEngine->EngineEndFrame();
 	}
-	
+
+	kGame.Shutdown();
+	kGame.Unload();
 	kEngine->EngineShutdown();
 
 	return 0;

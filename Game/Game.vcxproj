@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -71,19 +71,19 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)Bin\</OutDir>
+    <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Intermediate\Game\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)Bin\</OutDir>
+    <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Intermediate\Game\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)Bin\</OutDir>
+    <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Intermediate\Game\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)Bin\</OutDir>
+    <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Intermediate\Game\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -95,13 +95,20 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)Engine\Public</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
+      <!-- Hot Reload: 디버거가 이전 PDB를 잠가도 다시 링크할 수 있도록 빌드마다 PDB 이름을 바꾼다 -->
+      <ProgramDatabaseFile>$(OutDir)Game_$([System.DateTime]::Now.ToString("yyyyMMdd_HHmmss_fff")).pdb</ProgramDatabaseFile>
     </Link>
+    <PreBuildEvent>
+      <!-- 잠겨 있지 않은 이전 빌드 PDB 정리 (디버거가 사용 중인 파일은 남는다) -->
+      <Command>del /q "$(OutDir)Game_*.pdb" 2&gt;nul &amp; exit /b 0</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -114,13 +121,20 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)Engine\Public</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
+      <!-- Hot Reload: 디버거가 이전 PDB를 잠가도 다시 링크할 수 있도록 빌드마다 PDB 이름을 바꾼다 -->
+      <ProgramDatabaseFile>$(OutDir)Game_$([System.DateTime]::Now.ToString("yyyyMMdd_HHmmss_fff")).pdb</ProgramDatabaseFile>
     </Link>
+    <PreBuildEvent>
+      <!-- 잠겨 있지 않은 이전 빌드 PDB 정리 (디버거가 사용 중인 파일은 남는다) -->
+      <Command>del /q "$(OutDir)Game_*.pdb" 2&gt;nul &amp; exit /b 0</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -131,13 +145,20 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)Engine\Public</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
+      <!-- Hot Reload: 디버거가 이전 PDB를 잠가도 다시 링크할 수 있도록 빌드마다 PDB 이름을 바꾼다 -->
+      <ProgramDatabaseFile>$(OutDir)Game_$([System.DateTime]::Now.ToString("yyyyMMdd_HHmmss_fff")).pdb</ProgramDatabaseFile>
     </Link>
+    <PreBuildEvent>
+      <!-- 잠겨 있지 않은 이전 빌드 PDB 정리 (디버거가 사용 중인 파일은 남는다) -->
+      <Command>del /q "$(OutDir)Game_*.pdb" 2&gt;nul &amp; exit /b 0</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -150,19 +171,27 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)Engine\Public</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
+      <!-- Hot Reload: 디버거가 이전 PDB를 잠가도 다시 링크할 수 있도록 빌드마다 PDB 이름을 바꾼다 -->
+      <ProgramDatabaseFile>$(OutDir)Game_$([System.DateTime]::Now.ToString("yyyyMMdd_HHmmss_fff")).pdb</ProgramDatabaseFile>
     </Link>
+    <PreBuildEvent>
+      <!-- 잠겨 있지 않은 이전 빌드 PDB 정리 (디버거가 사용 중인 파일은 남는다) -->
+      <Command>del /q "$(OutDir)Game_*.pdb" 2&gt;nul &amp; exit /b 0</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
     <ClInclude Include="GameAPI.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="Spinner.h" />
+    <ClInclude Include="Follower.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
@@ -173,7 +202,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="SceneManager.cpp" />
+    <ClCompile Include="Spinner.cpp" />
+    <ClCompile Include="Follower.cpp" />
+    <ClCompile Include="..\Engine\public\SimpleMath.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Engine\Engine.vcxproj">

@@ -47,3 +47,6 @@
 Bin
 Intermediate
 
+
+# Visual Studio build outputs
+x64/

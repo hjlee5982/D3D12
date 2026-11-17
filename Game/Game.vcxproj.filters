@@ -7,7 +7,7 @@
     <Filter Include="01. Module">
       <UniqueIdentifier>{8A1B2C3D-4E5F-6789-ABCD-EF0123456789}</UniqueIdentifier>
     </Filter>
-    <Filter Include="02. Scene">
+    <Filter Include="02. Component">
       <UniqueIdentifier>{ed3c547a-bbe5-46c6-ad39-22874bf9c04f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -21,8 +21,11 @@
     <ClInclude Include="GameAPI.h">
       <Filter>01. Module</Filter>
     </ClInclude>
-    <ClInclude Include="SceneManager.h">
-      <Filter>02. Scene</Filter>
+    <ClInclude Include="Spinner.h">
+      <Filter>02. Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Follower.h">
+      <Filter>02. Component</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -35,8 +38,11 @@
     <ClCompile Include="GameModule.cpp">
       <Filter>01. Module</Filter>
     </ClCompile>
-    <ClCompile Include="SceneManager.cpp">
-      <Filter>02. Scene</Filter>
+    <ClCompile Include="Spinner.cpp">
+      <Filter>02. Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Follower.cpp">
+      <Filter>02. Component</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

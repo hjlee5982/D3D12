@@ -1,6 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="07. Editor">
+      <UniqueIdentifier>{195b8467-6dd5-4562-91ce-a18f7e2c46e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Lib\imgui">
+      <UniqueIdentifier>{f29f4a52-ab72-48ec-8e6f-f977008685e5}</UniqueIdentifier>
+    </Filter>
     <Filter Include="00. Header">
       <UniqueIdentifier>{c83f4692-2c63-4f62-bd15-0fae2de04b93}</UniqueIdentifier>
     </Filter>
@@ -25,6 +31,9 @@
     <Filter Include="02. Device\00. DirectX11\Buffer">
       <UniqueIdentifier>{b1fdcc1f-2cc0-4318-915f-f85b79a55f01}</UniqueIdentifier>
     </Filter>
+    <Filter Include="05. Render">
+      <UniqueIdentifier>{5d1c2f6e-7a3b-4c8d-9e0f-1a2b3c4d5e6f}</UniqueIdentifier>
+    </Filter>
     <Filter Include="99. Lib">
       <UniqueIdentifier>{04fc3ed1-3d36-4dcf-9119-09e50802c205}</UniqueIdentifier>
     </Filter>
@@ -45,17 +54,50 @@
     <ClInclude Include="Public\Types.h">
       <Filter>00. Header</Filter>
     </ClInclude>
+    <ClInclude Include="public\BuildInfo.h">
+      <Filter>01. Module</Filter>
+    </ClInclude>
     <ClInclude Include="public\Engine.h">
       <Filter>01. Module</Filter>
     </ClInclude>
     <ClInclude Include="public\Timer.h">
       <Filter>03. Timer</Filter>
     </ClInclude>
+    <ClInclude Include="public\SceneManager.h">
+      <Filter>04. Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="public\Log.h">
+      <Filter>00. Header</Filter>
+    </ClInclude>
+    <ClInclude Include="public\ResourceManager.h">
+      <Filter>05. Render</Filter>
+    </ClInclude>
+    <ClInclude Include="public\MeshRenderer.h">
+      <Filter>05. Render</Filter>
+    </ClInclude>
+    <ClInclude Include="public\Camera.h">
+      <Filter>05. Render</Filter>
+    </ClInclude>
+    <ClInclude Include="private\RenderResources.h">
+      <Filter>05. Render</Filter>
+    </ClInclude>
+    <ClInclude Include="private\ResourcePool.h">
+      <Filter>05. Render</Filter>
+    </ClInclude>
+    <ClInclude Include="private\Renderer11.h">
+      <Filter>05. Render</Filter>
+    </ClInclude>
+    <ClInclude Include="public\ComponentRegistry.h">
+      <Filter>04. Scene</Filter>
+    </ClInclude>
     <ClInclude Include="public\Scene.h">
       <Filter>04. Scene</Filter>
     </ClInclude>
-    <ClInclude Include="public\IDevice.h">
+    <ClInclude Include="private\IDevice.h">
       <Filter>02. Device</Filter>
+    </ClInclude>
+    <ClInclude Include="public\EngineAPI.h">
+      <Filter>00. Header</Filter>
     </ClInclude>
     <ClInclude Include="private\Device11.h">
       <Filter>02. Device\00. DirectX11</Filter>
@@ -69,6 +111,9 @@
     <ClInclude Include="public\GameObject.h">
       <Filter>05. GameObject</Filter>
     </ClInclude>
+    <ClInclude Include="public\Handle.h">
+      <Filter>05. GameObject</Filter>
+    </ClInclude>
     <ClInclude Include="public\Component.h">
       <Filter>06. Component</Filter>
     </ClInclude>
@@ -80,11 +125,35 @@
     <ClCompile Include="Private\pch.cpp">
       <Filter>00. Header</Filter>
     </ClCompile>
+    <ClCompile Include="private\BuildInfo.cpp">
+      <Filter>01. Module</Filter>
+    </ClCompile>
     <ClCompile Include="private\Engine.cpp">
       <Filter>01. Module</Filter>
     </ClCompile>
     <ClCompile Include="private\Timer.cpp">
       <Filter>03. Timer</Filter>
+    </ClCompile>
+    <ClCompile Include="private\SceneManager.cpp">
+      <Filter>04. Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="private\Log.cpp">
+      <Filter>00. Header</Filter>
+    </ClCompile>
+    <ClCompile Include="private\ResourceManager.cpp">
+      <Filter>05. Render</Filter>
+    </ClCompile>
+    <ClCompile Include="private\MeshRenderer.cpp">
+      <Filter>05. Render</Filter>
+    </ClCompile>
+    <ClCompile Include="private\Camera.cpp">
+      <Filter>05. Render</Filter>
+    </ClCompile>
+    <ClCompile Include="private\Renderer11.cpp">
+      <Filter>05. Render</Filter>
+    </ClCompile>
+    <ClCompile Include="private\ComponentRegistry.cpp">
+      <Filter>04. Scene</Filter>
     </ClCompile>
     <ClCompile Include="private\Scene.cpp">
       <Filter>04. Scene</Filter>
@@ -115,5 +184,59 @@
     <None Include="public\SimpleMath.inl">
       <Filter>99. Lib\SimpleMath</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="private\Editor.cpp">
+      <Filter>07. Editor</Filter>
+    </ClCompile>
+    <ClInclude Include="private\Editor.h">
+      <Filter>07. Editor</Filter>
+    </ClInclude>
+    <ClCompile Include="..\ThirdParty\imgui\imgui.cpp">
+      <Filter>99. Lib\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\imgui\imgui_draw.cpp">
+      <Filter>99. Lib\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\imgui\imgui_tables.cpp">
+      <Filter>99. Lib\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\imgui\imgui_widgets.cpp">
+      <Filter>99. Lib\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\imgui\imgui_demo.cpp">
+      <Filter>99. Lib\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\imgui\backends\imgui_impl_win32.cpp">
+      <Filter>99. Lib\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\imgui\backends\imgui_impl_dx11.cpp">
+      <Filter>99. Lib\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\imgui\misc\cpp\imgui_stdlib.cpp">
+      <Filter>99. Lib\imgui</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="private\Json.cpp">
+      <Filter>04. Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="private\SceneSerializer.cpp">
+      <Filter>04. Scene</Filter>
+    </ClCompile>
+    <ClInclude Include="private\Json.h">
+      <Filter>04. Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="private\SceneSerializer.h">
+      <Filter>04. Scene</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="private\RenderTexture11.cpp">
+      <Filter>05. Render</Filter>
+    </ClCompile>
+    <ClInclude Include="private\RenderTexture11.h">
+      <Filter>05. Render</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

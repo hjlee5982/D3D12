@@ -1,6 +1,14 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "Transform.h"
+#include "ComponentRegistry.h"
 #include "GameObject.h"
+
+Transform::Transform() = default;
+
+Transform* Transform::CreateInstance()
+{
+	return new Transform();
+}
 
 Transform::~Transform()
 {
@@ -186,4 +194,11 @@ void Transform::RemoveChild(Transform* child)
 	{
 		_children.erase(it);
 	}
+}
+
+void Transform::Reflect(TypeBuilder<Transform>& type)
+{
+	type.Field("position", &Transform::_position)
+		.Field("rotation", &Transform::_rotation)
+		.Field("scale", &Transform::_scale);
 }

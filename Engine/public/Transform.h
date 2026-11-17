@@ -1,14 +1,19 @@
-#pragma once
+﻿#pragma once
 
 #include "Component.h"
+#include "EngineAPI.h"
 #include "Types.h"
 
 #include <vector>
 
-class Transform : public Component
+class ENGINE_API Transform : public Component
 {
+	COMPONENT_TYPE(Transform, Component)
+
 public:
-	Transform() = default;
+	// 생성자를 Engine.dll 안에 정의해 vtable이 항상 Engine 모듈을 가리키게 한다 (Game.dll 리로드와 무관하게 유지).
+	Transform();
+	static Transform* CreateInstance();
 	~Transform() override;
 
 	const vec3& GetPosition() const;
@@ -39,6 +44,9 @@ public:
 
 	void OnDestroy() override;
 
+	// 에디터/직렬화용 필드 (position, rotation, scale)
+	static void Reflect(TypeBuilder<Transform>& type);
+
 private:
 	bool IsDescendantOf(const Transform* ancestor) const;
 	void RemoveFromParent();
@@ -52,3 +60,5 @@ private:
 	Transform* _parent = nullptr;
 	std::vector<Transform*> _children;
 };
+
+ENGINE_COMPONENT(Transform);

@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "Scene.h"
 #include "GameObject.h"
 
@@ -24,17 +24,83 @@ GameObject* Scene::CreateGameObject(std::string name)
 	auto gameObject = std::make_unique<GameObject>(std::move(name));
 	GameObject* raw = gameObject.get();
 	raw->SetScene(this);
+
+	// 업데이트 루프는 인덱스로 순회하고 시작 시점의 개수만 처리하므로,
+	// 여기서 push_back 해도 순회 중인 원소가 무효화되지 않는다.
 	_gameObjects.push_back(std::move(gameObject));
 	return raw;
 }
 
 void Scene::DestroyGameObject(GameObject* gameObject)
 {
-	if (gameObject == nullptr)
+	if (gameObject == nullptr || gameObject->GetScene() != this || gameObject->IsPendingDestroy())
 	{
 		return;
 	}
 
+	if (_isUpdating)
+	{
+		gameObject->MarkPendingDestroy();
+		_pendingDestroy.push_back(gameObject);
+		return;
+	}
+
+	DestroyImmediate(gameObject);
+}
+
+void Scene::Update(f32 deltaTime)
+{
+	_isUpdating = true;
+
+	const size_t count = _gameObjects.size();
+	for (size_t i = 0; i < count; ++i)
+	{
+		GameObject* gameObject = _gameObjects[i].get();
+		if (gameObject && !gameObject->IsPendingDestroy())
+		{
+			gameObject->Update(deltaTime);
+		}
+	}
+
+	_isUpdating = false;
+	FlushPendingDestroy();
+}
+
+void Scene::LateUpdate(f32 deltaTime)
+{
+	_isUpdating = true;
+
+	const size_t count = _gameObjects.size();
+	for (size_t i = 0; i < count; ++i)
+	{
+		GameObject* gameObject = _gameObjects[i].get();
+		if (gameObject && !gameObject->IsPendingDestroy())
+		{
+			gameObject->LateUpdate(deltaTime);
+		}
+	}
+
+	_isUpdating = false;
+	FlushPendingDestroy();
+}
+
+void Scene::FlushPendingDestroy()
+{
+	// DestroyImmediate 중 소멸자가 다시 Destroy를 호출할 수 있으므로 복사본으로 처리
+	while (!_pendingDestroy.empty())
+	{
+		std::vector<GameObject*> pending;
+		pending.swap(_pendingDestroy);
+
+		for (GameObject* gameObject : pending)
+		{
+			DestroyImmediate(gameObject);
+		}
+	}
+}
+
+void Scene::DestroyImmediate(GameObject* gameObject)
+{
 	const auto it = std::find_if(
 		_gameObjects.begin(),
 		_gameObjects.end(),
@@ -49,24 +115,29 @@ void Scene::DestroyGameObject(GameObject* gameObject)
 	}
 }
 
-void Scene::Update(f32 deltaTime)
+GameObject* Scene::FindGameObject(const std::string& name) const
 {
-	for (auto& gameObject : _gameObjects)
+	for (const auto& gameObject : _gameObjects)
 	{
-		if (gameObject)
+		if (gameObject && !gameObject->IsPendingDestroy() && gameObject->GetName() == name)
 		{
-			gameObject->Update(deltaTime);
+			return gameObject.get();
 		}
 	}
+	return nullptr;
 }
 
-void Scene::LateUpdate(f32 deltaTime)
+u32 Scene::GetGameObjectCount() const
 {
-	for (auto& gameObject : _gameObjects)
-	{
-		if (gameObject)
-		{
-			gameObject->LateUpdate(deltaTime);
-		}
-	}
+	return static_cast<u32>(_gameObjects.size());
+}
+
+const std::vector<std::unique_ptr<GameObject>>& Scene::GetGameObjects() const
+{
+	return _gameObjects;
+}
+
+bool Scene::IsUpdating() const
+{
+	return _isUpdating;
 }

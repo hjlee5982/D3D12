@@ -1,0 +1,38 @@
+{
+  "format": 1,
+  "name": "Untitled",
+  "materials": [
+    {
+      "name": "Proto",
+      "shader": "Shader/Default.hlsl",
+      "texture": "Texture/Proto.png"
+    }
+  ],
+  "objects": [
+    {
+      "id": 1,
+      "name": "Quad",
+      "active": true,
+      "parent": null,
+      "components": [
+        {
+          "type": "Transform",
+          "enabled": true,
+          "fields": {
+            "position": [-0.515507817, -0.815348208, 0],
+            "rotation": [0, 0, 0, 1],
+            "scale": [1, 1, 1]
+          }
+        },
+        {
+          "type": "MeshRenderer",
+          "enabled": true,
+          "fields": {
+            "mesh": "Quad",
+            "material": "Proto"
+          }
+        }
+      ]
+    }
+  ]
+}

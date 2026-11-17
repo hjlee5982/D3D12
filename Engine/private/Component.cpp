@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "Component.h"
 
 void Component::SetOwner(GameObject* owner)
@@ -19,4 +19,9 @@ bool Component::IsEnabled() const
 void Component::SetEnabled(bool enabled)
 {
 	_enabled = enabled;
+}
+
+void* Component::GetDefiningModule() const
+{
+	return _definingModule;
 }

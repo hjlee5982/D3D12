@@ -25,9 +25,10 @@
 //
 // 공개 클래스의 레이아웃을 바꾸는데 크기가 우연히 같을 수 있는 변경(멤버 순서 변경, 가상 함수 추가 등)을
 // 했다면 kEngineAbiVersion을 올린다.
-inline constexpr u32 kEngineAbiVersion = 4; // 2: Component 가상 함수 추가(타입 ID, 리로드 훅)
+inline constexpr u32 kEngineAbiVersion = 5; // 2: Component 가상 함수 추가(타입 ID, 리로드 훅)
                                             // 3: GameObject ID, 리소스 핸들 (MeshRenderer/ResourceManager)
                                             // 4: 에디터 (컴포넌트 추가/제거 API, Engine 컴포넌트 리플렉션)
+                                            // 5: 재생 모드 (Component::Start, 편집 모드 실행 플래그)
 
 struct BuildInfo
 {

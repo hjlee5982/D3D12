@@ -24,8 +24,8 @@ public:
 	bool   HasActiveScene() const;
 	void   ClearScene();
 
-	void Update(f32 deltaTime);
-	void LateUpdate(f32 deltaTime);
+	void Update(f32 deltaTime, bool editMode = false);
+	void LateUpdate(f32 deltaTime, bool editMode = false);
 
 private:
 	std::unique_ptr<Scene> _activeScene;

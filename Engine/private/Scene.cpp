@@ -19,9 +19,9 @@ void Scene::SetName(std::string name)
 	_name = std::move(name);
 }
 
-GameObject* Scene::CreateGameObject(std::string name)
+GameObject* Scene::CreateGameObject(std::string name, ObjectId requestedId)
 {
-	auto gameObject = std::make_unique<GameObject>(std::move(name));
+	auto gameObject = std::make_unique<GameObject>(std::move(name), requestedId);
 	GameObject* raw = gameObject.get();
 	raw->SetScene(this);
 
@@ -48,7 +48,7 @@ void Scene::DestroyGameObject(GameObject* gameObject)
 	DestroyImmediate(gameObject);
 }
 
-void Scene::Update(f32 deltaTime)
+void Scene::Update(f32 deltaTime, bool editMode)
 {
 	_isUpdating = true;
 
@@ -58,7 +58,7 @@ void Scene::Update(f32 deltaTime)
 		GameObject* gameObject = _gameObjects[i].get();
 		if (gameObject && !gameObject->IsPendingDestroy())
 		{
-			gameObject->Update(deltaTime);
+			gameObject->Update(deltaTime, editMode);
 		}
 	}
 
@@ -66,7 +66,7 @@ void Scene::Update(f32 deltaTime)
 	FlushPendingDestroy();
 }
 
-void Scene::LateUpdate(f32 deltaTime)
+void Scene::LateUpdate(f32 deltaTime, bool editMode)
 {
 	_isUpdating = true;
 
@@ -76,7 +76,7 @@ void Scene::LateUpdate(f32 deltaTime)
 		GameObject* gameObject = _gameObjects[i].get();
 		if (gameObject && !gameObject->IsPendingDestroy())
 		{
-			gameObject->LateUpdate(deltaTime);
+			gameObject->LateUpdate(deltaTime, editMode);
 		}
 	}
 

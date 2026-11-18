@@ -323,7 +323,27 @@ void Editor::Render()
 		BuildDefaultLayout(dockspaceId);
 		_resetLayout = false;
 	}
+	// 재생 중에는 에디터 색을 바꿔 "여기서 바꾼 값은 Stop하면 사라진다"는 것을 알린다
+	PushPlayModeTint();
+
 	ImGui::DockSpaceOverViewport(dockspaceId, ImGui::GetMainViewport());
+
+	// 재생 시작 → Game 창을 앞으로, 정지 → Scene 창을 앞으로 (같은 탭 묶음일 때)
+	const int playState = static_cast<int>(_engine.GetPlayState());
+	if (playState != _lastPlayState)
+	{
+		const bool enteredPlay = _lastPlayState == static_cast<int>(PlayState::Edit);
+		const bool stopped     = playState == static_cast<int>(PlayState::Edit);
+		if (enteredPlay)
+		{
+			ImGui::SetWindowFocus("Game");
+		}
+		else if (stopped)
+		{
+			ImGui::SetWindowFocus("Scene");
+		}
+		_lastPlayState = playState;
+	}
 
 	Scene* scene = _engine.GetSceneManager().GetActiveScene();
 
@@ -332,6 +352,7 @@ void Editor::Render()
 	DrawInspector();
 	DrawAssets();
 	DrawSceneView();
+	DrawGameView();
 
 	if (_showDemo)
 	{
@@ -371,6 +392,12 @@ void Editor::Render()
 	}
 
 	// 씬 교체는 다른 변경을 다 처리한 뒤 마지막에 (이 뒤로는 scene 포인터가 무효)
+	// 재생 중에 다른 씬을 열면 재생 세션을 끝낸다 (복원 없이: 곧 씬을 통째로 바꾸므로).
+	// Stop()은 다음 프레임에 재생 전 씬을 복원하므로 여기서 쓰면 방금 연 씬을 덮어쓴다.
+	if ((_pendingNew || !_pendingLoad.empty()) && _engine.IsPlaying())
+	{
+		_engine.DiscardPlaySession();
+	}
 	if (_pendingNew)
 	{
 		_engine.NewScene("Untitled");
@@ -386,16 +413,29 @@ void Editor::Render()
 		_pendingLoad.clear();
 	}
 
+	PopPlayModeTint();
+
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
 void Editor::DrawMainMenu(Scene* scene)
 {
-	// Ctrl+S: 창 포커스와 무관하게 저장
+	// Ctrl+S: 창 포커스와 무관하게 저장 (재생 중에는 SaveCurrentScene이 거부)
 	if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_S, ImGuiInputFlags_RouteGlobal))
 	{
 		SaveCurrentScene();
+	}
+
+	// Ctrl+P: 재생/정지, Ctrl+Shift+P: 일시정지
+	if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_P, ImGuiInputFlags_RouteGlobal))
+	{
+		if (_engine.IsPlaying()) { _engine.Stop(); }
+		else                     { _engine.Play(); }
+	}
+	if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_P, ImGuiInputFlags_RouteGlobal))
+	{
+		_engine.SetPaused(_engine.GetPlayState() == PlayState::Playing);
 	}
 
 	if (!ImGui::BeginMainMenuBar())
@@ -420,15 +460,6 @@ void Editor::DrawMainMenu(Scene* scene)
 		ImGui::EndMenu();
 	}
 
-	if (ImGui::BeginMenu("Scene"))
-	{
-		bool paused = _engine.IsScenePaused();
-		if (ImGui::MenuItem("Pause scene update", "", &paused))
-		{
-			_engine.SetScenePaused(paused);
-		}
-		ImGui::EndMenu();
-	}
 
 	if (ImGui::BeginMenu("View"))
 	{
@@ -440,13 +471,11 @@ void Editor::DrawMainMenu(Scene* scene)
 		ImGui::EndMenu();
 	}
 
+	DrawPlayControls();
+
 	const f32 dt = _engine.GetDeltaTime();
 	ImGui::Separator();
 	ImGui::Text("%.1f ms (%.0f FPS)", dt * 1000.0f, dt > 0.0f ? 1.0f / dt : 0.0f);
-	if (_engine.IsScenePaused())
-	{
-		ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "PAUSED");
-	}
 	const std::string& scenePath = _engine.GetScenePath();
 	ImGui::TextDisabled("| %s (%s) | F1: hide editor",
 		scene != nullptr ? scene->GetName().c_str() : "(no scene)",
@@ -607,6 +636,12 @@ void Editor::DrawInspector()
 	{
 		ImGui::End();
 		return;
+	}
+
+	if (_engine.IsPlaying())
+	{
+		ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.3f, 1.0f), "Play mode: changes are reverted on Stop");
+		ImGui::Separator();
 	}
 
 	GameObject* object = _selected.Get();
@@ -1147,6 +1182,12 @@ std::vector<std::string> Editor::FindSceneFiles() const
 
 void Editor::SaveCurrentScene()
 {
+	if (_engine.IsPlaying())
+	{
+		EngineLog("[Editor] Cannot save during play mode. Stop first.");
+		return;
+	}
+
 	const std::string& path = _engine.GetScenePath();
 	if (path.empty())
 	{
@@ -1187,11 +1228,16 @@ void Editor::DrawFileMenu()
 
 	ImGui::Separator();
 
-	if (ImGui::MenuItem("Save", "Ctrl+S"))
+	const bool playing = _engine.IsPlaying();
+	if (playing)
+	{
+		ImGui::TextDisabled("Stop play mode to save");
+	}
+	if (ImGui::MenuItem("Save", "Ctrl+S", false, !playing))
 	{
 		SaveCurrentScene();
 	}
-	if (ImGui::MenuItem("Save As..."))
+	if (ImGui::MenuItem("Save As...", nullptr, false, !playing))
 	{
 		_openSaveAs = true;
 	}
@@ -1280,6 +1326,7 @@ void Editor::BuildDefaultLayout(unsigned int dockspaceId)
 	ImGui::DockBuilderDockWindow("Inspector", right);
 	ImGui::DockBuilderDockWindow("Assets", bottom);
 	ImGui::DockBuilderDockWindow("Scene", center);
+	ImGui::DockBuilderDockWindow("Game", center); // Scene과 같은 탭 묶음. 끌어서 나란히 볼 수도 있다
 	ImGui::DockBuilderFinish(dockspaceId);
 }
 
@@ -1317,6 +1364,7 @@ void Editor::DrawSceneView()
 		return;
 	}
 
+	_sceneDockId = ImGui::GetWindowDockID();
 	DrawSceneToolbar();
 
 	const ImVec2 available = ImGui::GetContentRegionAvail();
@@ -1387,27 +1435,12 @@ void Editor::DrawSceneToolbar()
 		}
 	};
 
-	// 카메라 모드
-	int mode = _useGameCamera ? 1 : 0;
-	if (ImGui::RadioButton("Editor camera", &mode, 0))
-	{
-		_useGameCamera = false;
-	}
-	ImGui::SameLine();
-	if (ImGui::RadioButton("Game camera", &mode, 1))
-	{
-		_useGameCamera = true;
-	}
-
-	// 에디터 카메라 설정
-	placeGroup(90.0f + labelWidth("Speed") + style.ItemSpacing.x + 70.0f + labelWidth("FOV"));
-	ImGui::BeginDisabled(_useGameCamera);
+	// 에디터 카메라 설정 (게임 카메라 화면은 Game 창)
 	ImGui::SetNextItemWidth(90.0f);
 	ImGui::DragFloat("Speed", &_cameraSpeed, 0.1f, 0.1f, 200.0f, "%.1f");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(70.0f);
 	ImGui::DragFloat("FOV", &_cameraFovY, 0.5f, 10.0f, 120.0f, "%.0f");
-	ImGui::EndDisabled();
 
 	// 기즈모
 	placeGroup(radioWidth("Move (W)") + style.ItemSpacing.x + radioWidth("Rotate (E)") + style.ItemSpacing.x + buttonWidth("World"));
@@ -1453,7 +1486,7 @@ vec3 Editor::GetEditorCameraForward() const
 
 bool Editor::GetSceneViewCamera(matx& view, matx& projection) const
 {
-	if (_useGameCamera || _sceneTexture.GetWidth() == 0 || _sceneTexture.GetHeight() == 0)
+	if (_sceneTexture.GetWidth() == 0 || _sceneTexture.GetHeight() == 0)
 	{
 		return false;
 	}
@@ -1504,10 +1537,6 @@ void Editor::UpdateSceneCamera(bool hovered)
 		if (ImGui::IsKeyPressed(ImGuiKey_E, false)) { _gizmoMode = GizmoMode::Rotate; }
 	}
 
-	if (_useGameCamera)
-	{
-		return; // 게임 카메라는 씬의 Camera 컴포넌트가 결정한다 (Inspector에서 편집)
-	}
 
 	const quat rotation = quat::CreateFromYawPitchRoll(_cameraYaw, _cameraPitch, 0.0f);
 	const vec3 forward  = RotateVector(vec3(0.0f, 0.0f, 1.0f), rotation);
@@ -1873,7 +1902,7 @@ void Editor::DrawComponentDetails(Component* component)
 				}
 			}
 		}
-		ImGui::TextDisabled(isActiveCamera ? "Active game camera (used by Game camera view / F1)" : "Not the active game camera");
+		ImGui::TextDisabled(isActiveCamera ? "Active game camera (used by the Game window / F1)" : "Not the active game camera");
 	}
 }
 
@@ -2377,4 +2406,184 @@ bool Editor::UpdateGizmo(bool hovered)
 
 	drawList->PopClipRect();
 	return _gizmoConsumedClick;
+}
+
+// =================================================================================================
+// 재생 모드
+// =================================================================================================
+void Editor::DrawPlayControls()
+{
+	const PlayState state = _engine.GetPlayState();
+	const bool playing = state != PlayState::Edit;
+
+	ImGui::Separator();
+
+	// 재생 / 정지
+	if (playing)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.20f, 0.45f, 0.85f, 1.0f));
+	}
+	if (ImGui::Button(playing ? "Stop" : "Play"))
+	{
+		if (playing) { _engine.Stop(); }
+		else         { _engine.Play(); }
+	}
+	if (playing)
+	{
+		ImGui::PopStyleColor();
+	}
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip(playing ? "Stop and restore the scene to its state before Play (Ctrl+P)"
+		                          : "Run the game. The scene is restored when you stop (Ctrl+P)");
+	}
+
+	// 일시정지 (재생 중에만)
+	ImGui::BeginDisabled(!playing);
+	const bool paused = state == PlayState::Paused;
+	if (paused)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.85f, 0.55f, 0.15f, 1.0f));
+	}
+	if (ImGui::Button("Pause"))
+	{
+		_engine.SetPaused(!paused);
+	}
+	if (paused)
+	{
+		ImGui::PopStyleColor();
+	}
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+	{
+		ImGui::SetTooltip("Pause / resume (Ctrl+Shift+P)");
+	}
+
+	// 한 프레임 진행
+	if (ImGui::Button("Step"))
+	{
+		_engine.Step();
+	}
+	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+	{
+		ImGui::SetTooltip("Advance one frame (pauses if playing)");
+	}
+	ImGui::EndDisabled();
+
+	switch (state)
+	{
+	case PlayState::Edit:    ImGui::TextDisabled("EDIT"); break;
+	case PlayState::Playing: ImGui::TextColored(ImVec4(0.45f, 0.75f, 1.0f, 1.0f), "PLAYING"); break;
+	case PlayState::Paused:  ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.3f, 1.0f), "PAUSED"); break;
+	}
+}
+
+void Editor::PushPlayModeTint()
+{
+	_playTintPushed = 0;
+	if (!_engine.IsPlaying())
+	{
+		return;
+	}
+
+	// 기본 색에 푸른 기운을 섞는다 (유니티의 재생 중 틴트와 같은 목적)
+	const ImGuiStyle& style = ImGui::GetStyle();
+	auto tint = [&](ImGuiCol index)
+	{
+		const ImVec4 base = style.Colors[index];
+		ImGui::PushStyleColor(index, ImVec4(base.x * 0.80f, base.y * 0.90f, base.z * 1.25f + 0.04f, base.w));
+		++_playTintPushed;
+	};
+
+	tint(ImGuiCol_WindowBg);
+	tint(ImGuiCol_MenuBarBg);
+	tint(ImGuiCol_TitleBg);
+	tint(ImGuiCol_TitleBgActive);
+	tint(ImGuiCol_DockingEmptyBg);
+}
+
+void Editor::PopPlayModeTint()
+{
+	if (_playTintPushed > 0)
+	{
+		ImGui::PopStyleColor(_playTintPushed);
+		_playTintPushed = 0;
+	}
+}
+
+bool Editor::BeginGameView(const f32 clearColor[4])
+{
+	if (!_initialized || !_visible || _gameViewWidth == 0 || _gameViewHeight == 0)
+	{
+		return false;
+	}
+
+	if (!_gameTexture.Resize(_device, _gameViewWidth, _gameViewHeight))
+	{
+		return false;
+	}
+
+	_gameTexture.Begin(_context, clearColor);
+	return true;
+}
+
+void Editor::DrawGameView()
+{
+	// 처음 열리는 Game 창(이전 배치 파일에 없음)은 Scene 창과 같은 곳에 탭으로 붙인다
+	if (_sceneDockId != 0)
+	{
+		ImGui::SetNextWindowDockID(_sceneDockId, ImGuiCond_FirstUseEver);
+	}
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+	const bool open = ImGui::Begin("Game", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+	ImGui::PopStyleVar();
+
+	if (!open)
+	{
+		// 다른 탭에 가려져 있으면 그리지 않는다
+		_gameViewWidth  = 0;
+		_gameViewHeight = 0;
+		ImGui::End();
+		return;
+	}
+
+	const ImVec2 available = ImGui::GetContentRegionAvail();
+	_gameViewWidth  = available.x >= 1.0f ? static_cast<u32>(available.x) : 0;
+	_gameViewHeight = available.y >= 1.0f ? static_cast<u32>(available.y) : 0;
+
+	if (ID3D11ShaderResourceView* view = _gameTexture.GetShaderResourceView())
+	{
+		ImGui::Image(reinterpret_cast<ImTextureID>(view), available);
+	}
+	else
+	{
+		ImGui::Dummy(available);
+	}
+
+	// 안내 문구: 씬에 활성 카메라가 없으면 기본 카메라로 그리고 있음을 알린다
+	bool hasCamera = false;
+	if (const Scene* scene = _engine.GetSceneManager().GetActiveScene())
+	{
+		for (const auto& object : scene->GetGameObjects())
+		{
+			if (object != nullptr && object->IsActive() && !object->IsPendingDestroy())
+			{
+				const Camera* camera = object->GetComponent<Camera>();
+				if (camera != nullptr && camera->IsEnabled())
+				{
+					hasCamera = true;
+					break;
+				}
+			}
+		}
+	}
+
+	const ImVec2 origin = ImGui::GetItemRectMin();
+	char label[96];
+	std::snprintf(label, sizeof(label), "%u x %u%s%s", _gameTexture.GetWidth(), _gameTexture.GetHeight(),
+		hasCamera ? "" : "  |  No Camera in scene (default view)",
+		_engine.IsPlaying() ? "" : "  |  Edit mode: press Play to run");
+	ImGui::GetWindowDrawList()->AddText(ImVec2(origin.x + 8.0f, origin.y + 6.0f), IM_COL32(255, 255, 255, 190), label);
+
+	ImGui::End();
 }

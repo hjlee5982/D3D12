@@ -49,8 +49,13 @@ public:
 	u32  GetSceneViewWidth() const  { return _sceneTexture.GetWidth(); }
 	u32  GetSceneViewHeight() const { return _sceneTexture.GetHeight(); }
 
-	// Scene 창이 에디터 카메라 모드면 그 행렬을 채우고 true. 게임 카메라 모드면 false (씬의 카메라 사용).
+	// Scene 창의 에디터 카메라 행렬. Scene 창이 안 보이면 false.
 	bool GetSceneViewCamera(matx& view, matx& projection) const;
+
+	// Game 창: 씬의 Camera 컴포넌트로 그리는 화면 (재생 결과 확인용). 창이 안 보이면 false.
+	bool BeginGameView(const f32 clearColor[4]);
+	u32  GetGameViewWidth() const  { return _gameTexture.GetWidth(); }
+	u32  GetGameViewHeight() const { return _gameTexture.GetHeight(); }
 
 	void SetVisible(bool visible) { _visible = visible; }
 	bool IsVisible() const { return _visible; }
@@ -68,6 +73,10 @@ private:
 	void DrawField(Component* component, const FieldInfo& field);
 	void DrawAssets();
 	void DrawSceneView();
+	void DrawGameView();
+	void DrawPlayControls();
+	void PushPlayModeTint();
+	void PopPlayModeTint();
 	void DrawSceneToolbar();
 	void UpdateSceneCamera(bool hovered);
 	void PickObject(f32 mouseX, f32 mouseY);
@@ -104,10 +113,19 @@ private:
 	u32  _sceneViewWidth   = 0; // 이번 프레임에 잰 Scene 창 내용 영역 크기 (다음 프레임 렌더에 사용)
 	u32  _sceneViewHeight  = 0;
 	bool _sceneViewHovered = false;
+	unsigned int _sceneDockId = 0; // Scene 창이 도킹된 노드 (Game 창을 처음 열 때 같은 곳에 탭으로)
+
+	// Game 창
+	RenderTexture11 _gameTexture;
+	u32  _gameViewWidth  = 0;
+	u32  _gameViewHeight = 0;
+
+	// 재생 상태 전환 감지 (Play → Game 창 앞으로, Stop → Scene 창 앞으로)
+	int  _lastPlayState    = 0;
+	int  _playTintPushed   = 0;
 	f32  _sceneRect[4]{};       // Scene 이미지의 화면 좌표 (minX, minY, maxX, maxY)
 
 	// 에디터 카메라 (씬과 별개. 씬 파일에 저장되지 않는다)
-	bool _useGameCamera = false;
 	vec3 _cameraPosition{ 0.0f, 1.0f, -5.0f };
 	f32  _cameraYaw     = 0.0f;  // 라디안. +는 오른쪽
 	f32  _cameraPitch   = 0.2f;  // 라디안. +는 아래

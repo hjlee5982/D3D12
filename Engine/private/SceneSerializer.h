@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <string>
 
@@ -34,8 +34,19 @@ namespace SceneSerializer
 		unsigned    skipped    = 0; // 등록되지 않은 타입 등으로 저장/복원하지 못한 컴포넌트
 	};
 
+	struct LoadOptions
+	{
+		bool preserveIds    = false; // 파일의 오브젝트 ID를 그대로 사용 (재생 정지 복원: 선택/참조 유지)
+		bool applyMaterials = true;  // 머티리얼 정의를 적용 (재생 복원에서는 리소스를 되돌리지 않으므로 false)
+	};
+
 	Result Save(const Scene& scene, const ComponentRegistry& registry, const ResourceManager* resources, const std::wstring& filePath);
 
 	// 파일을 읽고 파싱에 성공해야만 활성 씬을 교체한다 (실패하면 기존 씬 유지)
 	Result Load(SceneManager& sceneManager, const ComponentRegistry& registry, ResourceManager* resources, const std::wstring& filePath);
+
+	// 메모리 버전 (재생 시작 시 스냅샷, 정지 시 복원)
+	Result SaveToString(const Scene& scene, const ComponentRegistry& registry, const ResourceManager* resources, std::string& out);
+	Result LoadFromString(SceneManager& sceneManager, const ComponentRegistry& registry, ResourceManager* resources,
+		const std::string& text, const LoadOptions& options);
 }

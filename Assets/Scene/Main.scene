@@ -11,7 +11,7 @@
   "objects": [
     {
       "id": 1,
-      "name": "Quad",
+      "name": "TestObject",
       "active": true,
       "parent": null,
       "components": [
@@ -19,8 +19,8 @@
           "type": "Transform",
           "enabled": true,
           "fields": {
-            "position": [-0.515507817, -0.815348208, 0],
-            "rotation": [0, 0, 0, 1],
+            "position": [0, 0, 0],
+            "rotation": [0, -0.341834009, -0, 0.939760387],
             "scale": [1, 1, 1]
           }
         },
@@ -30,6 +30,15 @@
           "fields": {
             "mesh": "Quad",
             "material": "Proto"
+          }
+        },
+        {
+          "type": "Follower",
+          "enabled": true,
+          "fields": {
+            "target": 1,
+            "offset": [0.100000001, 0, 0],
+            "sharpness": 6
           }
         }
       ]

@@ -70,6 +70,7 @@ struct ComponentTypeInfo
 	ComponentTypeId        id      = 0;
 	void*                  module  = nullptr; // 이 타입의 코드가 있는 모듈 (Game.dll 사본)
 	ComponentFactory       factory = nullptr;
+	bool                   executeInEditMode = false; // EXECUTE_IN_EDIT_MODE
 	std::vector<FieldInfo> fields;
 };
 
@@ -114,6 +115,7 @@ struct ComponentSnapshot
 	ObjectId                   owner = kInvalidObjectId; // 포인터 대신 ID (리로드 중 오브젝트가 사라져도 안전)
 	u32                        index = 0;       // 오브젝트 안에서의 순서 (업데이트 순서 유지)
 	bool                       enabled = true;
+	bool                       started = false; // 리로드는 재시작이 아니므로 Start를 다시 부르지 않는다
 	std::string                typeName;
 	std::vector<FieldSnapshot> fields;
 };
@@ -150,6 +152,7 @@ public:
 		ComponentTypeInfo info;
 		info.name = T::StaticTypeName();
 		info.id   = T::StaticTypeId();
+		info.executeInEditMode = ExecutesInEditMode<T>();
 
 		if constexpr (IsEngineComponent<T>::value)
 		{

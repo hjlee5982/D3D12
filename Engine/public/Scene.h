@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "EngineAPI.h"
+#include "Handle.h"
 #include "Types.h"
 
 #include <memory>
@@ -22,7 +23,8 @@ public:
 	void SetName(std::string name);
 
 	// 업데이트 중에 생성된 오브젝트는 다음 프레임부터 업데이트된다.
-	GameObject* CreateGameObject(std::string name = "GameObject");
+	// requestedId: GameObject 생성자 참고 (씬 복원에서 원래 ID 유지)
+	GameObject* CreateGameObject(std::string name = "GameObject", ObjectId requestedId = kInvalidObjectId);
 
 	// 업데이트 중에 호출되면 즉시 비활성 처리하고, 실제 삭제는 현재 업데이트 단계가 끝난 뒤 수행한다.
 	void DestroyGameObject(GameObject* gameObject);
@@ -32,8 +34,8 @@ public:
 	u32 GetGameObjectCount() const;
 	const std::vector<std::unique_ptr<GameObject>>& GetGameObjects() const;
 
-	void Update(f32 deltaTime);
-	void LateUpdate(f32 deltaTime);
+	void Update(f32 deltaTime, bool editMode = false);
+	void LateUpdate(f32 deltaTime, bool editMode = false);
 
 	// Update/LateUpdate 실행 중인지 (이때 씬을 교체하면 안 된다)
 	bool IsUpdating() const;

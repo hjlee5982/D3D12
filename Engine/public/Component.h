@@ -70,6 +70,23 @@ struct IsEngineComponent : std::false_type {};
 #define ENGINE_COMPONENT(Type) \
 	template <> struct IsEngineComponent<Type> : std::true_type {}
 
+// 편집 모드(재생 전)에서도 Update/LateUpdate를 받으려면 클래스 본문에 EXECUTE_IN_EDIT_MODE()를 둔다.
+// (기본: 재생 중에만 동작. 유니티의 [ExecuteInEditMode]와 같은 역할)
+#define EXECUTE_IN_EDIT_MODE() public: static constexpr bool kExecuteInEditMode = true; private:
+
+template <typename T>
+constexpr bool ExecutesInEditMode()
+{
+	if constexpr (requires { T::kExecuteInEditMode; })
+	{
+		return T::kExecuteInEditMode;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 class ENGINE_API Component
 {
 public:
@@ -98,6 +115,12 @@ public:
 	virtual bool            IsA(ComponentTypeId id) const { return id == StaticTypeId(); }
 
 	virtual void OnCreate() {}
+
+	// 첫 Update 직전에 한 번 (재생을 시작하거나, 재생 중에 추가된 뒤 첫 프레임).
+	// 편집 모드에서는 EXECUTE_IN_EDIT_MODE 컴포넌트만 호출된다.
+	virtual void Start() {}
+	bool HasStarted() const { return _started; }
+
 	virtual void Update(f32 deltaTime) {}
 	virtual void LateUpdate(f32 deltaTime) {}
 	virtual void OnDestroy() {}
@@ -116,4 +139,6 @@ private:
 	friend class GameObject;
 	friend class ComponentRegistry;
 	void* _definingModule = nullptr;
+	bool  _started        = false; // Start 호출 여부
+	bool  _runInEditMode  = false; // EXECUTE_IN_EDIT_MODE (생성 시 타입 정보로 설정)
 };

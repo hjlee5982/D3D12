@@ -29,10 +29,20 @@ GameObject* ObjectRef::Get() const
 	return object != nullptr && !object->IsPendingDestroy() ? object : nullptr;
 }
 
-GameObject::GameObject(std::string name)
-	: _id(g_nextObjectId++)
-	, _name(std::move(name))
+GameObject::GameObject(std::string name, ObjectId requestedId)
+	: _name(std::move(name))
 {
+	auto& table = GetObjectTable();
+	if (requestedId != kInvalidObjectId && table.find(requestedId) == table.end())
+	{
+		_id = requestedId;
+		g_nextObjectId = g_nextObjectId > requestedId ? g_nextObjectId : requestedId + 1; // 이후 새 ID와 겹치지 않도록
+	}
+	else
+	{
+		_id = g_nextObjectId++;
+	}
+
 	GetObjectTable().emplace(_id, this);
 	AddComponent<Transform>();
 }
@@ -98,7 +108,7 @@ void GameObject::SetScene(Scene* scene)
 	_scene = scene;
 }
 
-void GameObject::Update(f32 deltaTime)
+void GameObject::Update(f32 deltaTime, bool editMode)
 {
 	if (!_active)
 	{
@@ -112,16 +122,23 @@ void GameObject::Update(f32 deltaTime)
 	for (size_t i = 0; i < count; ++i)
 	{
 		Component* component = _components[i].get();
-		if (component && component->IsEnabled())
+		if (component == nullptr || !component->IsEnabled() || (editMode && !component->_runInEditMode))
 		{
-			component->Update(deltaTime);
+			continue;
 		}
+
+		if (!component->_started)
+		{
+			component->_started = true;
+			component->Start();
+		}
+		component->Update(deltaTime);
 	}
 	_iterating = false;
 	FlushPendingRemovals();
 }
 
-void GameObject::LateUpdate(f32 deltaTime)
+void GameObject::LateUpdate(f32 deltaTime, bool editMode)
 {
 	if (!_active)
 	{
@@ -135,7 +152,7 @@ void GameObject::LateUpdate(f32 deltaTime)
 	for (size_t i = 0; i < count; ++i)
 	{
 		Component* component = _components[i].get();
-		if (component && component->IsEnabled())
+		if (component != nullptr && component->IsEnabled() && component->_started && (!editMode || component->_runInEditMode))
 		{
 			component->LateUpdate(deltaTime);
 		}
@@ -184,6 +201,7 @@ Component* GameObject::AddComponentByType(const ComponentTypeInfo& type, bool ca
 
 	// 팩토리는 타입을 정의한 모듈 안에 있으므로 vtable도 그 모듈을 가리킨다
 	component->_definingModule = type.module;
+	component->_runInEditMode  = type.executeInEditMode;
 	component->SetOwner(this);
 	if (callOnCreate)
 	{

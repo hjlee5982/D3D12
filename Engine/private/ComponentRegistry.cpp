@@ -220,6 +220,7 @@ u32 ComponentRegistry::SnapshotAndRelease(Scene* scene, void* module, bool keepS
 						snapshot.owner    = object->GetId();
 						snapshot.index    = index;
 						snapshot.enabled  = component->IsEnabled();
+						snapshot.started  = component->_started;
 						snapshot.typeName = info->name;
 						for (const FieldInfo& field : info->fields)
 						{
@@ -282,6 +283,8 @@ u32 ComponentRegistry::RestoreSnapshots()
 		}
 
 		component->_definingModule = info->module;
+		component->_runInEditMode  = info->executeInEditMode;
+		component->_started        = snapshot.started;
 		component->SetOwner(owner);
 		component->SetEnabled(snapshot.enabled);
 

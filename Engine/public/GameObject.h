@@ -18,7 +18,8 @@ struct ComponentTypeInfo;
 class ENGINE_API GameObject
 {
 public:
-	explicit GameObject(std::string name = "GameObject");
+	// requestedId: 그 ID가 비어 있으면 사용 (재생 정지 시 복원에서 원래 ID 유지). 아니면 새 ID.
+	explicit GameObject(std::string name = "GameObject", ObjectId requestedId = kInvalidObjectId);
 	~GameObject();
 
 	GameObject(const GameObject&) = delete;
@@ -71,6 +72,7 @@ public:
 		{
 			component->_definingModule = GetCurrentModuleHandle();
 		}
+		component->_runInEditMode = ExecutesInEditMode<T>();
 
 		component->SetOwner(this);
 		component->OnCreate();
@@ -109,8 +111,9 @@ public:
 		}
 	}
 
-	void Update(f32 deltaTime);
-	void LateUpdate(f32 deltaTime);
+	// editMode = true면 EXECUTE_IN_EDIT_MODE 컴포넌트만 실행한다 (편집 모드)
+	void Update(f32 deltaTime, bool editMode = false);
+	void LateUpdate(f32 deltaTime, bool editMode = false);
 
 	// Scene::DestroyGameObject로 삭제 예약된 상태인지 (예약되면 더 이상 업데이트되지 않음)
 	bool IsPendingDestroy() const;

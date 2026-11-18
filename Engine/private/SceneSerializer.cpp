@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "SceneSerializer.h"
 
 #include "ComponentRegistry.h"
@@ -279,6 +279,18 @@ namespace
 
 SceneSerializer::Result SceneSerializer::Save(const Scene& scene, const ComponentRegistry& registry, const ResourceManager* resources, const std::wstring& filePath)
 {
+	std::string text;
+	Result result = SaveToString(scene, registry, resources, text);
+	if (result.ok && !WriteTextFileAtomic(filePath, text))
+	{
+		result.ok    = false;
+		result.error = "cannot write file";
+	}
+	return result;
+}
+
+SceneSerializer::Result SceneSerializer::SaveToString(const Scene& scene, const ComponentRegistry& registry, const ResourceManager* resources, std::string& out)
+{
 	Result result;
 
 	Json root = Json::MakeObject();
@@ -355,28 +367,29 @@ SceneSerializer::Result SceneSerializer::Save(const Scene& scene, const Componen
 		++result.objects;
 	}
 
-	if (!WriteTextFileAtomic(filePath, root.Dump()))
-	{
-		result.error = "cannot write file";
-		return result;
-	}
-
+	out = root.Dump();
 	result.ok = true;
 	return result;
 }
 
 SceneSerializer::Result SceneSerializer::Load(SceneManager& sceneManager, const ComponentRegistry& registry, ResourceManager* resources, const std::wstring& filePath)
 {
-	Result result;
-
-	// 1) 읽기 + 파싱 + 형식 확인. 여기서 실패하면 기존 씬을 건드리지 않는다.
 	std::string text;
 	if (!ReadTextFile(filePath, text))
 	{
+		Result result;
 		result.error = "cannot read file";
 		return result;
 	}
+	return LoadFromString(sceneManager, registry, resources, text, LoadOptions{});
+}
 
+SceneSerializer::Result SceneSerializer::LoadFromString(SceneManager& sceneManager, const ComponentRegistry& registry, ResourceManager* resources,
+	const std::string& text, const LoadOptions& options)
+{
+	Result result;
+
+	// 1) 파싱 + 형식 확인. 여기서 실패하면 기존 씬을 건드리지 않는다.
 	Json root;
 	if (!Json::Parse(text, root, result.error))
 	{
@@ -392,7 +405,7 @@ SceneSerializer::Result SceneSerializer::Load(SceneManager& sceneManager, const 
 	}
 
 	// 2) 머티리얼 (같은 이름이 있으면 저장된 셰이더/텍스처로 맞춘다)
-	if (resources != nullptr)
+	if (resources != nullptr && options.applyMaterials)
 	{
 		const Json& materials = root["materials"];
 		for (size_t i = 0; i < materials.Size(); ++i)
@@ -433,7 +446,9 @@ SceneSerializer::Result SceneSerializer::Load(SceneManager& sceneManager, const 
 	{
 		const Json& item = objects[i];
 
-		GameObject* object = scene->CreateGameObject(item["name"].IsString() ? item["name"].AsString() : "GameObject");
+		// preserveIds: 기존 씬이 이미 파괴되었으므로 파일의 ID가 비어 있다 → 그대로 사용 (선택/ObjectRef 유지)
+		const ObjectId requestedId = options.preserveIds && item["id"].IsNumber() ? static_cast<ObjectId>(item["id"].AsNumber()) : kInvalidObjectId;
+		GameObject* object = scene->CreateGameObject(item["name"].IsString() ? item["name"].AsString() : "GameObject", requestedId);
 		object->SetActive(item["active"].AsBool(true));
 		++result.objects;
 

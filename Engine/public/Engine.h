@@ -19,6 +19,20 @@ class Renderer11;
 class Editor;
 class Device11;
 
+// 재생 상태 (유니티의 Edit / Play / Pause)
+//   Edit    : 배치·편집만. 컴포넌트 Update와 Game.dll의 GameUpdate가 실행되지 않는다
+//             (EXECUTE_IN_EDIT_MODE 컴포넌트만 실행)
+//   Playing : 모든 컴포넌트와 게임 로직 실행
+//   Paused  : 재생 중 멈춤. Step()으로 한 프레임씩 진행
+// Play()는 씬을 메모리에 저장해 두고, Stop()은 그 상태로 되돌린다 (재생 중 변경은 버려진다).
+// 재생 중 LoadScene(게임 코드의 레벨 전환 등)은 재생을 유지하며, Stop하면 재생 전 씬으로 돌아간다.
+enum class PlayState : u8
+{
+	Edit,
+	Playing,
+	Paused,
+};
+
 class ENGINE_API Engine
 {
 public:
@@ -82,9 +96,23 @@ public:
 	void SetEditorVisible(bool visible);
 	bool IsEditorVisible() const;
 
-	// true면 EngineSceneUpdate/LateUpdate를 건너뛴다 (에디터에서 멈춘 채 편집)
-	void SetScenePaused(bool paused);
-	bool IsScenePaused() const;
+	// --- 재생 모드 ---
+	// 에디터가 있으면 Edit 상태로 시작하고, 없으면(에디터 초기화 실패 등) 바로 Playing으로 시작한다.
+	// Play/Stop은 다음 프레임 시작에 적용된다 (씬 교체 중 포인터 무효화 방지). 호출 직후 GetPlayState는 아직 이전 값.
+	void Play();                 // Edit → Playing (씬 스냅샷 저장)
+	void Stop();                 // Playing/Paused → Edit (스냅샷으로 복원)
+	void SetPaused(bool paused); // Playing ↔ Paused
+	void Step();                 // Paused 상태에서 다음 한 프레임만 진행 (Playing이면 멈춘 뒤 진행)
+
+	// 재생 세션을 복원 없이 즉시 끝낸다 (씬을 건드리지 않음). 에디터가 재생 중에 다른 씬을 열 때 사용:
+	// 곧 씬을 통째로 바꿀 것이므로 재생 전 상태로 되돌릴 필요가 없다.
+	void DiscardPlaySession();
+
+	PlayState GetPlayState() const;
+	bool IsPlaying() const;      // Playing 또는 Paused (= 재생 세션 중)
+
+	// 이번 프레임에 게임 로직(Game.dll Update, 컴포넌트 Update)을 실행하는지. 호스트가 GameUpdate 호출 여부를 결정할 때 사용.
+	bool IsSimulating() const;
 
 	// 창 클라이언트 영역 크기가 바뀌었을 때 호출 (WM_SIZE).
 	void OnResize(u32 width, u32 height);
@@ -107,7 +135,12 @@ private:
 	std::unique_ptr<Renderer11>      _renderer;
 	std::unique_ptr<Editor>          _editor;
 	Device11*                        _device11 = nullptr; // _device가 D3D11일 때 같은 객체
-	bool _scenePaused = false;
+	PlayState   _playState     = PlayState::Playing;
+	bool        _stepRequested = false;
+	std::string _playSnapshot;         // Play 시작 시점의 씬 (Stop에서 복원)
+	PlayState   _pendingCommand = PlayState::Playing; // 요청된 Play/Stop (다음 프레임 시작에 처리)
+	bool        _hasPendingCommand = false;
+	void ApplyPlayCommand(PlayState target);
 	std::string _scenePath;
 	bool _comInitialized = false;
 	Timer _timer;

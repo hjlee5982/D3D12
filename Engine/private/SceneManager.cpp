@@ -27,18 +27,18 @@ void SceneManager::ClearScene()
 	_activeScene.reset();
 }
 
-void SceneManager::Update(f32 deltaTime)
+void SceneManager::Update(f32 deltaTime, bool editMode)
 {
 	if (_activeScene)
 	{
-		_activeScene->Update(deltaTime);
+		_activeScene->Update(deltaTime, editMode);
 	}
 }
 
-void SceneManager::LateUpdate(f32 deltaTime)
+void SceneManager::LateUpdate(f32 deltaTime, bool editMode)
 {
 	if (_activeScene)
 	{
-		_activeScene->LateUpdate(deltaTime);
+		_activeScene->LateUpdate(deltaTime, editMode);
 	}
 }

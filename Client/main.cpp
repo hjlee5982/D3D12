@@ -7,8 +7,8 @@ namespace
 {
 	constexpr WCHAR kWindowClassName[] = L"D3D12ClientWindow";
 	constexpr WCHAR kWindowTitle[]     = L"D3D12";
-	constexpr i32   kDefaultWidth      = 1280;
-	constexpr i32   kDefaultHeight     = 720;
+	constexpr i32   kDefaultWidth      = 1920;
+	constexpr i32   kDefaultHeight     = 1080;
 
 	std::unique_ptr<Engine> kEngine = nullptr;
 	GameHost kGame;
@@ -166,7 +166,7 @@ i32 WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE, _In_ LPWSTR, _I
 			return 1;
 		}
 
-		kEngine->SetTargetFPS(30);
+		kEngine->SetTargetFPS(120);
 		kEngine->SetVSync(false); // 목표 FPS 제한과 VSync 대기가 겹치지 않도록
 	}
 	
@@ -216,11 +216,21 @@ i32 WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE, _In_ LPWSTR, _I
 
 		kEngine->EngineUpdate();
 
-		const f32 deltaTime = kEngine->GetDeltaTime();
-		kGame.Update(deltaTime);
+		// 게임 로직은 재생 중에만 (편집 모드에서는 배치만 하고 움직이지 않는다).
+		// Step 요청이 LateUpdate 뒤에 지워지므로 이 프레임의 판정을 먼저 저장해 둔다.
+		const f32  deltaTime  = kEngine->GetDeltaTime();
+		const bool simulating = kEngine->IsSimulating();
+
+		if (simulating)
+		{
+			kGame.Update(deltaTime);
+		}
 		kEngine->EngineSceneUpdate();
 
-		kGame.LateUpdate(deltaTime);
+		if (simulating)
+		{
+			kGame.LateUpdate(deltaTime);
+		}
 		kEngine->EngineSceneLateUpdate();
 
 		kEngine->EngineRenderBegin();

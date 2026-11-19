@@ -186,10 +186,67 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="private\Editor.cpp">
+    <ClCompile Include="private\Editor\AssetsPanel.cpp">
       <Filter>07. Editor</Filter>
     </ClCompile>
-    <ClInclude Include="private\Editor.h">
+    <ClCompile Include="private\Editor\Editor.cpp">
+      <Filter>07. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="private\Editor\EditorContext.cpp">
+      <Filter>07. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="private\Editor\EditorUtils.cpp">
+      <Filter>07. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="private\Editor\GameViewPanel.cpp">
+      <Filter>07. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="private\Editor\HierarchyPanel.cpp">
+      <Filter>07. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="private\Editor\InspectorPanel.cpp">
+      <Filter>07. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="private\Editor\MainMenuBar.cpp">
+      <Filter>07. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="private\Editor\SceneViewPanel.cpp">
+      <Filter>07. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="private\Editor\TransformGizmo.cpp">
+      <Filter>07. Editor</Filter>
+    </ClCompile>
+    <ClInclude Include="private\Editor\AssetsPanel.h">
+      <Filter>07. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="private\Editor\Editor.h">
+      <Filter>07. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="private\Editor\EditorContext.h">
+      <Filter>07. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="private\Editor\EditorUtils.h">
+      <Filter>07. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="private\Editor\GameViewPanel.h">
+      <Filter>07. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="private\Editor\HierarchyPanel.h">
+      <Filter>07. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="private\Editor\InspectorPanel.h">
+      <Filter>07. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="private\Editor\MainMenuBar.h">
+      <Filter>07. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="private\Editor\SceneViewPanel.h">
+      <Filter>07. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="private\Editor\SceneViewport.h">
+      <Filter>07. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="private\Editor\TransformGizmo.h">
       <Filter>07. Editor</Filter>
     </ClInclude>
     <ClCompile Include="..\ThirdParty\imgui\imgui.cpp">

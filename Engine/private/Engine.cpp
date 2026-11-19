@@ -7,7 +7,7 @@
 #include "ComponentRegistry.h"
 #include "ResourceManager.h"
 #include "Renderer11.h"
-#include "Editor.h"
+#include "Editor/Editor.h"
 #include "Scene.h"
 #include "SceneSerializer.h"
 #include "Camera.h"

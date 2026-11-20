@@ -12,6 +12,7 @@
 #include "imgui_impl_dx11.h"
 #include "imgui_impl_win32.h"
 
+#include <cstring>
 #include <filesystem>
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -24,6 +25,7 @@ Editor::Editor(Engine& engine)
 	, _hierarchy(_ctx)
 	, _inspector(_ctx)
 	, _assets(_ctx)
+	, _project(_ctx)
 	, _sceneView(_ctx)
 	, _gameView(_ctx)
 {
@@ -47,6 +49,33 @@ bool Editor::Initialize(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* co
 	io.IniFilename = _iniPath.c_str();
 
 	ImGui::StyleColorsDark();
+
+	// 닫은 창 목록을 imgui.ini에 함께 저장한다:  [D3D12Editor][Windows]  Closed=Game,Inspector
+	// (ini는 첫 NewFrame에서 읽으므로 그 전에 등록해야 한다)
+	{
+		ImGuiSettingsHandler handler;
+		handler.TypeName   = "D3D12Editor";
+		handler.TypeHash   = ImHashStr("D3D12Editor");
+		handler.UserData   = &_ctx;
+		handler.ReadOpenFn = [](ImGuiContext*, ImGuiSettingsHandler*, const char* name) -> void*
+		{
+			return std::strcmp(name, "Windows") == 0 ? reinterpret_cast<void*>(1) : nullptr;
+		};
+		handler.ReadLineFn = [](ImGuiContext*, ImGuiSettingsHandler* self, void*, const char* line)
+		{
+			constexpr const char kKey[] = "Closed=";
+			if (std::strncmp(line, kKey, sizeof(kKey) - 1) == 0)
+			{
+				static_cast<EditorContext*>(self->UserData)->SetClosedWindowList(line + sizeof(kKey) - 1);
+			}
+		};
+		handler.WriteAllFn = [](ImGuiContext*, ImGuiSettingsHandler* self, ImGuiTextBuffer* out)
+		{
+			const std::string closed = static_cast<EditorContext*>(self->UserData)->GetClosedWindowList();
+			out->appendf("[%s][Windows]\nClosed=%s\n\n", self->TypeName, closed.c_str());
+		};
+		ImGui::AddSettingsHandler(&handler);
+	}
 
 	// 한글 이름 표시용 폰트 (없으면 ImGui 기본 폰트)
 	WCHAR windowsDir[MAX_PATH]{};
@@ -151,7 +180,9 @@ void Editor::Render()
 	if (_ctx.resetLayout || dockNode == nullptr || !dockNode->IsSplitNode())
 	{
 		BuildDefaultLayout(dockspaceId);
+		_ctx.OpenAllWindows(); // 기본 배치에는 모든 창이 있다
 		_ctx.resetLayout = false;
+		_project.BringToFront();
 	}
 	// 재생 중에는 에디터 색을 바꿔 "여기서 바꾼 값은 Stop하면 사라진다"는 것을 알린다
 	PushPlayModeTint();
@@ -181,6 +212,7 @@ void Editor::Render()
 	_hierarchy.Draw(scene);
 	_inspector.Draw();
 	_assets.Draw();
+	_project.Draw(_assets.GetDockId());
 	_sceneView.Draw();
 	_gameView.Draw(_sceneView.GetDockId());
 
@@ -203,7 +235,7 @@ void Editor::BuildDefaultLayout(unsigned int dockspaceId)
 	// ┌──────────┬────────────────┬───────────┐
 	// │Hierarchy │     Scene      │ Inspector │
 	// │          ├────────────────┤           │
-	// │          │     Assets     │           │
+	// │          │ Project/Assets │           │
 	// └──────────┴────────────────┴───────────┘
 	const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
@@ -218,7 +250,8 @@ void Editor::BuildDefaultLayout(unsigned int dockspaceId)
 
 	ImGui::DockBuilderDockWindow("Hierarchy", left);
 	ImGui::DockBuilderDockWindow("Inspector", right);
-	ImGui::DockBuilderDockWindow("Assets", bottom);
+	ImGui::DockBuilderDockWindow("Project", bottom);
+	ImGui::DockBuilderDockWindow("Assets", bottom);  // Project와 같은 탭 묶음 (Project를 앞으로: ProjectPanel::BringToFront)
 	ImGui::DockBuilderDockWindow("Scene", center);
 	ImGui::DockBuilderDockWindow("Game", center); // Scene과 같은 탭 묶음. 끌어서 나란히 볼 수도 있다
 	ImGui::DockBuilderFinish(dockspaceId);

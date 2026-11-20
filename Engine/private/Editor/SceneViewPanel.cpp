@@ -79,9 +79,21 @@ bool SceneViewPanel::Begin(const f32 clearColor[4])
 
 void SceneViewPanel::Draw()
 {
+	if (!_ctx.PrepareWindow(EditorWindow::Scene))
+	{
+		// 창을 닫았으면 Scene 렌더 텍스처에 그리지 않는다
+		_sceneViewWidth   = 0;
+		_sceneViewHeight  = 0;
+		_sceneViewHovered = false;
+		_navigating       = false;
+		_sceneDockId      = 0;
+		return;
+	}
+
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 	const bool open = ImGui::Begin("Scene", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 	ImGui::PopStyleVar();
+	_ctx.HandleWindowTitleClick(EditorWindow::Scene);
 
 	if (!open)
 	{

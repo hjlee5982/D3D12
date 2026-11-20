@@ -6,6 +6,7 @@
 #include "HierarchyPanel.h"
 #include "InspectorPanel.h"
 #include "MainMenuBar.h"
+#include "ProjectPanel.h"
 #include "SceneViewPanel.h"
 #include "Types.h"
 
@@ -18,10 +19,11 @@ class Engine;
 // Engine.dll 안에 있으므로 Game.dll을 리로드해도 에디터 상태(선택, 창 배치)가 유지된다.
 // 이 클래스는 ImGui 초기화/입력/프레임 순서만 맡고, 화면은 패널들이 그린다.
 //
-//   MainMenuBar    : File / Create / View 메뉴, 재생 버튼, 단축키
+//   MainMenuBar    : File / Create / View 메뉴, 그 아래 도구 줄(가운데 Play / Pause / Step), 단축키
 //   HierarchyPanel : 오브젝트 트리, 생성/삭제, 드래그로 부모 변경
 //   InspectorPanel : 상세 정보, 리플렉션 필드 편집, 컴포넌트 추가/제거
 //   AssetsPanel    : 에셋 파일 로드/리로드/언로드, 머티리얼
+//   ProjectPanel   : Assets 폴더 트리 + 폴더 내용 (유니티 Project 창), 파일 끌어다 놓기
 //   SceneViewPanel : 에디터 카메라 화면, 클릭 선택, 선택 외곽선, TransformGizmo
 //   GameViewPanel  : 씬 카메라 화면
 //
@@ -78,6 +80,7 @@ private:
 	HierarchyPanel _hierarchy;
 	InspectorPanel _inspector;
 	AssetsPanel    _assets;
+	ProjectPanel   _project;
 	SceneViewPanel _sceneView;
 	GameViewPanel  _gameView;
 };

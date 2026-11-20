@@ -43,6 +43,14 @@ bool GameViewPanel::Begin(const f32 clearColor[4])
 
 void GameViewPanel::Draw(unsigned int sceneDockId)
 {
+	if (!_ctx.IsWindowOpen(EditorWindow::Game))
+	{
+		// 창을 닫았으면 Game 렌더 텍스처에 그리지 않는다
+		_gameViewWidth  = 0;
+		_gameViewHeight = 0;
+		return;
+	}
+
 	// 처음 열리는 Game 창(이전 배치 파일에 없음)은 Scene 창과 같은 곳에 탭으로 붙인다
 	if (sceneDockId != 0)
 	{
@@ -50,8 +58,10 @@ void GameViewPanel::Draw(unsigned int sceneDockId)
 	}
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+	_ctx.PrepareWindow(EditorWindow::Game);
 	const bool open = ImGui::Begin("Game", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 	ImGui::PopStyleVar();
+	_ctx.HandleWindowTitleClick(EditorWindow::Game);
 
 	if (!open)
 	{

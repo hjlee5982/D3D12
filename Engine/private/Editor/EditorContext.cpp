@@ -12,7 +12,138 @@
 #include "SceneManager.h"
 #include "Transform.h"
 
+#include "imgui.h"
+#include "imgui_internal.h" // 창의 탭/제목 줄 영역, 설정 저장 표시
+
 using namespace EditorUtil;
+
+// ---------------------------------------------------------------------------------------------
+// 창 열기/닫기
+// ---------------------------------------------------------------------------------------------
+
+const char* EditorContext::GetWindowName(EditorWindow window)
+{
+	switch (window)
+	{
+	case EditorWindow::Scene:     return "Scene";
+	case EditorWindow::Game:      return "Game";
+	case EditorWindow::Hierarchy: return "Hierarchy";
+	case EditorWindow::Inspector: return "Inspector";
+	case EditorWindow::Project:   return "Project";
+	case EditorWindow::Assets:    return "Assets";
+	default:                      return "";
+	}
+}
+
+void EditorContext::OpenWindow(EditorWindow window)
+{
+	const int index = static_cast<int>(window);
+	if (!windowOpen[index])
+	{
+		windowOpen[index] = true;
+		ImGui::MarkIniSettingsDirty();
+	}
+	windowFocusRequest[index] = true;
+}
+
+void EditorContext::CloseWindow(EditorWindow window)
+{
+	const int index = static_cast<int>(window);
+	if (windowOpen[index])
+	{
+		windowOpen[index] = false;
+		ImGui::MarkIniSettingsDirty();
+	}
+	windowFocusRequest[index] = false;
+}
+
+void EditorContext::OpenAllWindows()
+{
+	for (int i = 0; i < kWindowCount; ++i)
+	{
+		windowOpen[i] = true;
+	}
+	ImGui::MarkIniSettingsDirty();
+}
+
+bool EditorContext::PrepareWindow(EditorWindow window)
+{
+	const int index = static_cast<int>(window);
+	if (!windowOpen[index])
+	{
+		return false;
+	}
+	if (windowFocusRequest[index])
+	{
+		// 같은 탭 묶음에 있으면 그 탭을 고르고, 떠 있는 창이면 맨 앞으로
+		ImGui::SetNextWindowFocus();
+		windowFocusRequest[index] = false;
+	}
+	return true;
+}
+
+void EditorContext::HandleWindowTitleClick(EditorWindow window)
+{
+	if (!ImGui::IsMouseClicked(ImGuiMouseButton_Middle))
+	{
+		return;
+	}
+
+	// 도킹된 창은 탭, 떠 있는 창은 제목 줄. 탭은 도킹 공간(호스트 창)에 그려지므로 그 창이 마우스 아래에 있어야 한다.
+	const ImGuiContext& g = *ImGui::GetCurrentContext();
+	ImGuiWindow* current = ImGui::GetCurrentWindow();
+	const bool docked = current->DockIsActive && current->DockNode != nullptr;
+	const ImRect rect = docked ? current->DC.DockTabItemRect : current->TitleBarRect();
+	ImGuiWindow* owner = docked ? current->DockNode->HostWindow : current;
+
+	if (g.HoveredWindow != nullptr && owner != nullptr && g.HoveredWindow->RootWindowDockTree == owner->RootWindowDockTree
+		&& rect.GetWidth() > 0.0f && rect.Contains(ImGui::GetMousePos()))
+	{
+		CloseWindow(window);
+	}
+}
+
+std::string EditorContext::GetClosedWindowList() const
+{
+	std::string list;
+	for (int i = 0; i < kWindowCount; ++i)
+	{
+		if (!windowOpen[i])
+		{
+			list += list.empty() ? "" : ",";
+			list += GetWindowName(static_cast<EditorWindow>(i));
+		}
+	}
+	return list;
+}
+
+void EditorContext::SetClosedWindowList(const std::string& list)
+{
+	for (int i = 0; i < kWindowCount; ++i)
+	{
+		windowOpen[i] = true;
+	}
+
+	size_t start = 0;
+	while (start <= list.size())
+	{
+		size_t end = list.find(',', start);
+		end = end == std::string::npos ? list.size() : end;
+		const std::string name = list.substr(start, end - start);
+		for (int i = 0; i < kWindowCount; ++i)
+		{
+			if (name == GetWindowName(static_cast<EditorWindow>(i)))
+			{
+				windowOpen[i] = false;
+			}
+		}
+		start = end + 1;
+	}
+}
+
+// ---------------------------------------------------------------------------------------------
+// 미뤄 둔 씬 변경
+// ---------------------------------------------------------------------------------------------
 
 void EditorContext::ApplyPendingEdits()
 {

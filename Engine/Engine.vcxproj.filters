@@ -210,6 +210,9 @@
     <ClCompile Include="private\Editor\MainMenuBar.cpp">
       <Filter>07. Editor</Filter>
     </ClCompile>
+    <ClCompile Include="private\Editor\ProjectPanel.cpp">
+      <Filter>07. Editor</Filter>
+    </ClCompile>
     <ClCompile Include="private\Editor\SceneViewPanel.cpp">
       <Filter>07. Editor</Filter>
     </ClCompile>
@@ -238,6 +241,9 @@
       <Filter>07. Editor</Filter>
     </ClInclude>
     <ClInclude Include="private\Editor\MainMenuBar.h">
+      <Filter>07. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="private\Editor\ProjectPanel.h">
       <Filter>07. Editor</Filter>
     </ClInclude>
     <ClInclude Include="private\Editor\SceneViewPanel.h">

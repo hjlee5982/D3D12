@@ -13,6 +13,7 @@ public:
 	explicit AssetsPanel(EditorContext& context) : _ctx(context) {}
 
 	void Draw();
+	unsigned int GetDockId() const { return _dockId; } // Project 창을 처음 열 때 같은 곳에 붙이는 데 사용
 
 private:
 	EditorContext& _ctx;
@@ -24,4 +25,5 @@ private:
 	std::vector<std::string> _files;   // Assets 기준 상대 경로 (UTF-8, '/')
 	u64         _lastScan = 0;
 	std::string _newMaterialName = "NewMaterial";
+	unsigned int _dockId = 0;
 };

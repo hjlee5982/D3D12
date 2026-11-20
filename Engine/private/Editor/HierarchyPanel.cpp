@@ -25,9 +25,45 @@
 
 using namespace EditorUtil;
 
+namespace
+{
+	// 유니티의 GameObject 아이콘처럼 위에서 비스듬히 본 정육면체 테두리 (윗면은 옅게 채움)
+	void DrawCubeIcon(ImDrawList* drawList, const ImVec2& min, f32 size, ImU32 color)
+	{
+		const f32 cx = min.x + size * 0.5f;
+		const f32 cy = min.y + size * 0.5f;
+		const f32 r  = size * 0.46f;
+		const f32 dx = r * 0.866f; // cos 30°
+
+		const ImVec2 center(cx, cy);
+		const ImVec2 top(cx, cy - r);
+		const ImVec2 upperRight(cx + dx, cy - r * 0.5f);
+		const ImVec2 lowerRight(cx + dx, cy + r * 0.5f);
+		const ImVec2 bottom(cx, cy + r);
+		const ImVec2 lowerLeft(cx - dx, cy + r * 0.5f);
+		const ImVec2 upperLeft(cx - dx, cy - r * 0.5f);
+
+		const ImVec2 topFace[4] = { upperLeft, top, upperRight, center };
+		drawList->AddConvexPolyFilled(topFace, 4, (color & ~IM_COL32_A_MASK) | (((color >> IM_COL32_A_SHIFT) & 0xFF) / 4 << IM_COL32_A_SHIFT));
+
+		const f32 thickness = size >= 18.0f ? 1.5f : 1.2f;
+		const ImVec2 outline[6] = { top, upperRight, lowerRight, bottom, lowerLeft, upperLeft };
+		drawList->AddPolyline(outline, 6, color, ImDrawFlags_Closed, thickness);
+		drawList->AddLine(center, upperLeft, color, thickness);
+		drawList->AddLine(center, upperRight, color, thickness);
+		drawList->AddLine(center, bottom, color, thickness);
+	}
+}
+
 void HierarchyPanel::Draw(Scene* scene)
 {
-	if (!ImGui::Begin("Hierarchy"))
+	if (!_ctx.PrepareWindow(EditorWindow::Hierarchy))
+	{
+		return;
+	}
+	const bool visible = ImGui::Begin("Hierarchy");
+	_ctx.HandleWindowTitleClick(EditorWindow::Hierarchy);
+	if (!visible)
 	{
 		ImGui::End();
 		return;
@@ -101,15 +137,26 @@ void HierarchyPanel::DrawNode(GameObject* object)
 		flags |= ImGuiTreeNodeFlags_Selected;
 	}
 
+	// 이름 앞에 아이콘 자리를 공백으로 비워 두고, 노드를 그린 뒤 그 자리에 정육면체 아이콘을 그린다
+	const f32 iconSize = ImGui::GetTextLineHeight();
+	const int padding  = static_cast<int>(std::ceil((iconSize + 6.0f) / ImGui::CalcTextSize(" ").x));
+	const std::string label = std::string(static_cast<size_t>(padding), ' ') + object->GetName();
+
+	// 비활성 오브젝트는 이름과 아이콘을 흐리게
+	const ImU32 iconColor = ImGui::GetColorU32(object->IsActive() ? ImGuiCol_Text : ImGuiCol_TextDisabled, 0.85f);
 	if (!object->IsActive())
 	{
 		ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
 	}
-	const bool open = ImGui::TreeNodeEx(reinterpret_cast<void*>(static_cast<uintptr_t>(id)), flags, "%s", object->GetName().c_str());
+	const bool open = ImGui::TreeNodeEx(reinterpret_cast<void*>(static_cast<uintptr_t>(id)), flags, "%s", label.c_str());
 	if (!object->IsActive())
 	{
 		ImGui::PopStyleColor();
 	}
+
+	const ImVec2 rowMin = ImGui::GetItemRectMin();
+	const f32 rowHeight = ImGui::GetItemRectSize().y;
+	DrawCubeIcon(ImGui::GetWindowDrawList(), ImVec2(rowMin.x + ImGui::GetTreeNodeToLabelSpacing(), rowMin.y + (rowHeight - iconSize) * 0.5f), iconSize, iconColor);
 
 	if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 	{

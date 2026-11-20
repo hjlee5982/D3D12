@@ -187,6 +187,7 @@
     <ClInclude Include="private\Editor\HierarchyPanel.h" />
     <ClInclude Include="private\Editor\InspectorPanel.h" />
     <ClInclude Include="private\Editor\MainMenuBar.h" />
+    <ClInclude Include="private\Editor\ProjectPanel.h" />
     <ClInclude Include="private\Editor\SceneViewPanel.h" />
     <ClInclude Include="private\Editor\SceneViewport.h" />
     <ClInclude Include="private\Editor\TransformGizmo.h" />
@@ -228,6 +229,7 @@
     <ClCompile Include="private\Editor\HierarchyPanel.cpp" />
     <ClCompile Include="private\Editor\InspectorPanel.cpp" />
     <ClCompile Include="private\Editor\MainMenuBar.cpp" />
+    <ClCompile Include="private\Editor\ProjectPanel.cpp" />
     <ClCompile Include="private\Editor\SceneViewPanel.cpp" />
     <ClCompile Include="private\Editor\TransformGizmo.cpp" />
     <ClCompile Include="private\Json.cpp" />

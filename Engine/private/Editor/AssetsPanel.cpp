@@ -27,7 +27,15 @@ using namespace EditorUtil;
 
 void AssetsPanel::Draw()
 {
-	if (!ImGui::Begin("Assets"))
+	if (!_ctx.PrepareWindow(EditorWindow::Assets))
+	{
+		_dockId = 0;
+		return;
+	}
+	const bool visible = ImGui::Begin("Assets");
+	_ctx.HandleWindowTitleClick(EditorWindow::Assets);
+	_dockId = ImGui::GetWindowDockID();
+	if (!visible)
 	{
 		ImGui::End();
 		return;
@@ -226,13 +234,15 @@ void AssetsPanel::DrawMaterials()
 	else
 	{
 		ShaderHandle shader = resources->GetMaterialShader(_ctx.selectedMaterial);
-		if (ResourceCombo("Shader", shader, resources->ListShaders(), resources->IsAlive(shader)))
+		const bool shaderPicked = ResourceCombo("Shader", shader, resources->ListShaders(), resources->IsAlive(shader));
+		if (AcceptAssetDrop(resources, shader) || shaderPicked) // Project 창에서 끌어다 놓기
 		{
 			resources->SetMaterialShader(_ctx.selectedMaterial, shader);
 		}
 
 		TextureHandle texture = resources->GetMaterialTexture(_ctx.selectedMaterial);
-		if (ResourceCombo("Texture", texture, resources->ListTextures(), resources->IsAlive(texture)))
+		const bool texturePicked = ResourceCombo("Texture", texture, resources->ListTextures(), resources->IsAlive(texture));
+		if (AcceptAssetDrop(resources, texture) || texturePicked)
 		{
 			resources->SetMaterialTexture(_ctx.selectedMaterial, texture);
 		}

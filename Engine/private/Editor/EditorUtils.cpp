@@ -126,4 +126,57 @@ namespace EditorUtil
 			child->SetScale(scale);
 		}
 	}
+
+	namespace
+	{
+		// 끌고 있는 것이 조건에 맞는 에셋 파일일 때만 놓을 곳으로 표시한다
+		template <typename Load>
+		bool AcceptAssetFile(bool (*matches)(const std::string&), Load&& load)
+		{
+			const ImGuiPayload* dragging = ImGui::GetDragDropPayload();
+			if (dragging == nullptr || !dragging->IsDataType(kAssetPayload) || !matches(static_cast<const char*>(dragging->Data)))
+			{
+				return false;
+			}
+
+			bool changed = false;
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(kAssetPayload))
+				{
+					changed = load(std::string(static_cast<const char*>(payload->Data)));
+				}
+				ImGui::EndDragDropTarget();
+			}
+			return changed;
+		}
+	}
+
+	bool AcceptAssetDrop(ResourceManager* resources, TextureHandle& handle)
+	{
+		return resources != nullptr && AcceptAssetFile(&IsTextureFile, [&](const std::string& path)
+		{
+			const TextureHandle loaded = resources->LoadTexture(path); // 이미 로드돼 있으면 같은 핸들
+			if (!loaded)
+			{
+				return false;
+			}
+			handle = loaded;
+			return true;
+		});
+	}
+
+	bool AcceptAssetDrop(ResourceManager* resources, ShaderHandle& handle)
+	{
+		return resources != nullptr && AcceptAssetFile(&IsShaderFile, [&](const std::string& path)
+		{
+			const ShaderHandle loaded = resources->LoadShader(path);
+			if (!loaded)
+			{
+				return false;
+			}
+			handle = loaded;
+			return true;
+		});
+	}
 }

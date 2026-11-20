@@ -16,6 +16,8 @@ namespace EditorUtil
 {
 	// Hierarchy → Inspector 등으로 오브젝트를 끌어다 놓을 때의 페이로드 이름 (ObjectId)
 	inline constexpr const char* kObjectPayload = "D3D12_OBJECT";
+	// Project 창에서 파일을 끌 때의 페이로드 이름 (Assets 기준 상대 경로, 널 종료 UTF-8)
+	inline constexpr const char* kAssetPayload = "D3D12_ASSET";
 
 	std::string  ToUtf8(const std::wstring& wide);
 	std::wstring ToWide(const std::string& utf8);
@@ -31,6 +33,10 @@ namespace EditorUtil
 
 	// 부모를 바꿔도 월드 위치/회전/크기가 유지되도록 로컬 값을 다시 계산한다
 	void SetParentKeepWorld(Transform* child, Transform* parent);
+
+	// 바로 앞 항목에 Project 창의 텍스처/셰이더 파일을 놓으면 로드해서 handle에 넣는다. 바뀌었으면 true.
+	bool AcceptAssetDrop(ResourceManager* resources, TextureHandle& handle);
+	bool AcceptAssetDrop(ResourceManager* resources, ShaderHandle& handle);
 
 	// 리소스 핸들 콤보: (none) + 목록. 핸들이 가리키는 리소스가 삭제됐으면 (missing)으로 표시.
 	template <typename H>

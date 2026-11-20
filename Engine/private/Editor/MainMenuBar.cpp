@@ -15,6 +15,7 @@
 #include "Transform.h"
 
 #include "imgui.h"
+#include "imgui_internal.h" // BeginViewportSideBar (메뉴 바 아래 도구 줄)
 #include "misc/cpp/imgui_stdlib.h"
 
 #include <cfloat>
@@ -77,7 +78,21 @@ void MainMenuBar::Draw(Scene* scene)
 		ImGui::EndMenu();
 	}
 
-	DrawPlayControls();
+	// 창 목록: 누르면 닫힌 창은 다시 열고, 열린 창은 앞으로 꺼낸다 (체크 = 열려 있음)
+	if (ImGui::BeginMenu("Window"))
+	{
+		for (int i = 0; i < static_cast<int>(EditorWindow::Count); ++i)
+		{
+			const EditorWindow window = static_cast<EditorWindow>(i);
+			if (ImGui::MenuItem(EditorContext::GetWindowName(window), nullptr, _ctx.IsWindowOpen(window)))
+			{
+				_ctx.OpenWindow(window);
+			}
+		}
+		ImGui::Separator();
+		ImGui::TextDisabled("Middle-click a tab to close it");
+		ImGui::EndMenu();
+	}
 
 	const f32 dt = _ctx.engine.GetDeltaTime();
 	ImGui::Separator();
@@ -89,6 +104,7 @@ void MainMenuBar::Draw(Scene* scene)
 
 	ImGui::EndMainMenuBar();
 
+	DrawToolbar();
 	DrawSaveAsPopup();
 }
 
@@ -244,47 +260,115 @@ std::vector<std::string> MainMenuBar::FindSceneFiles() const
 	return files;
 }
 
+void MainMenuBar::DrawToolbar()
+{
+	// 메인 메뉴 바 바로 아래에 붙는 한 줄. 메뉴 바처럼 뷰포트 작업 영역을 줄이므로 도킹 공간은 그 아래부터 시작한다.
+	// (메뉴 바를 그린 다음에 불러야 메뉴 바 아래에 놓인다)
+	const ImGuiStyle& style = ImGui::GetStyle();
+	const ImVec2 padding(style.WindowPadding.x, 4.0f);
+	const f32 height = ImGui::GetFrameHeight() + padding.y * 2.0f;
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, padding);
+	const bool open = ImGui::BeginViewportSideBar("##PlayToolbar", ImGui::GetMainViewport(), ImGuiDir_Up, height,
+		ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings);
+	ImGui::PopStyleVar();
+
+	if (open)
+	{
+		DrawPlayControls();
+	}
+	ImGui::End();
+}
+
 void MainMenuBar::DrawPlayControls()
 {
 	const PlayState state = _ctx.engine.GetPlayState();
 	const bool playing = state != PlayState::Edit;
+	const bool paused  = state == PlayState::Paused;
 
-	ImGui::Separator();
+	// 세 아이콘 버튼을 가운데 정렬
+	const ImVec2 buttonSize(40.0f, ImGui::GetFrameHeight());
+	const f32 spacing    = ImGui::GetStyle().ItemSpacing.x;
+	const f32 groupWidth = buttonSize.x * 3.0f + spacing * 2.0f;
+	ImGui::SetCursorPosX((std::max)(ImGui::GetCursorPosX(), (ImGui::GetWindowWidth() - groupWidth) * 0.5f));
+
+	// 버튼 배경 (80, 80, 80). 켜져 있는 상태(재생 중 / 일시정지 중)는 색으로 구분한다.
+	const ImVec4 normal (80.0f / 255.0f,  80.0f / 255.0f,  80.0f / 255.0f, 1.0f);
+	const ImVec4 hovered(100.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 1.0f);
+	const ImVec4 pressed(65.0f / 255.0f,  65.0f / 255.0f,  65.0f / 255.0f, 1.0f);
+	const ImVec4 playOn (0.20f, 0.45f, 0.85f, 1.0f);
+	const ImVec4 pauseOn(0.85f, 0.55f, 0.15f, 1.0f);
+
+	ImGui::PushStyleColor(ImGuiCol_Button,        normal);
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, hovered);
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive,  pressed);
+
+	// 아이콘은 버튼을 그린 뒤 그 위에 도형으로 그린다. 글자색(GetColorU32)을 쓰므로 비활성일 때 자동으로 흐려진다.
+	enum class Icon { Play, Stop, Pause, Step };
+	auto iconButton = [&](const char* id, Icon icon, bool on, const ImVec4& onColor) -> bool
+	{
+		if (on)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Button, onColor);
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(onColor.x * 1.15f, onColor.y * 1.15f, onColor.z * 1.15f, 1.0f));
+		}
+		const bool clicked = ImGui::Button(id, buttonSize);
+		if (on)
+		{
+			ImGui::PopStyleColor(2);
+		}
+
+		const ImVec2 min = ImGui::GetItemRectMin();
+		const ImVec2 max = ImGui::GetItemRectMax();
+		const ImVec2 c((min.x + max.x) * 0.5f, (min.y + max.y) * 0.5f);
+		const f32 h = (max.y - min.y) * 0.26f; // 아이콘 반 높이
+		const ImU32 color = ImGui::GetColorU32(ImGuiCol_Text);
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+		switch (icon)
+		{
+		case Icon::Play:  // ▶
+			drawList->AddTriangleFilled(ImVec2(c.x - h * 0.8f, c.y - h), ImVec2(c.x - h * 0.8f, c.y + h), ImVec2(c.x + h, c.y), color);
+			break;
+		case Icon::Stop:  // ■
+			drawList->AddRectFilled(ImVec2(c.x - h * 0.85f, c.y - h * 0.85f), ImVec2(c.x + h * 0.85f, c.y + h * 0.85f), color);
+			break;
+		case Icon::Pause: // ❚❚
+		{
+			const f32 w = h * 0.45f;
+			drawList->AddRectFilled(ImVec2(c.x - h * 0.75f, c.y - h), ImVec2(c.x - h * 0.75f + w, c.y + h), color);
+			drawList->AddRectFilled(ImVec2(c.x + h * 0.75f - w, c.y - h), ImVec2(c.x + h * 0.75f, c.y + h), color);
+			break;
+		}
+		case Icon::Step:  // ▶❚
+		{
+			const f32 left = c.x - h * 1.0f;
+			drawList->AddTriangleFilled(ImVec2(left, c.y - h), ImVec2(left, c.y + h), ImVec2(left + h * 1.4f, c.y), color);
+			drawList->AddRectFilled(ImVec2(left + h * 1.55f, c.y - h), ImVec2(left + h * 1.55f + h * 0.4f, c.y + h), color);
+			break;
+		}
+		}
+		return clicked;
+	};
 
 	// 재생 / 정지
-	if (playing)
-	{
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.20f, 0.45f, 0.85f, 1.0f));
-	}
-	if (ImGui::Button(playing ? "Stop" : "Play"))
+	if (iconButton("##PlayStop", playing ? Icon::Stop : Icon::Play, playing, playOn))
 	{
 		if (playing) { _ctx.engine.Stop(); }
 		else         { _ctx.engine.Play(); }
 	}
-	if (playing)
-	{
-		ImGui::PopStyleColor();
-	}
 	if (ImGui::IsItemHovered())
 	{
 		ImGui::SetTooltip(playing ? "Stop and restore the scene to its state before Play (Ctrl+P)"
-		                          : "Run the game. The scene is restored when you stop (Ctrl+P)");
+		                          : "Play: run the game. The scene is restored when you stop (Ctrl+P)");
 	}
 
 	// 일시정지 (재생 중에만)
+	ImGui::SameLine();
 	ImGui::BeginDisabled(!playing);
-	const bool paused = state == PlayState::Paused;
-	if (paused)
-	{
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.85f, 0.55f, 0.15f, 1.0f));
-	}
-	if (ImGui::Button("Pause"))
+	if (iconButton("##Pause", Icon::Pause, paused, pauseOn))
 	{
 		_ctx.engine.SetPaused(!paused);
-	}
-	if (paused)
-	{
-		ImGui::PopStyleColor();
 	}
 	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
 	{
@@ -292,16 +376,22 @@ void MainMenuBar::DrawPlayControls()
 	}
 
 	// 한 프레임 진행
-	if (ImGui::Button("Step"))
+	ImGui::SameLine();
+	if (iconButton("##Step", Icon::Step, false, normal))
 	{
 		_ctx.engine.Step();
 	}
 	if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
 	{
-		ImGui::SetTooltip("Advance one frame (pauses if playing)");
+		ImGui::SetTooltip("Step: advance one frame (pauses if playing)");
 	}
 	ImGui::EndDisabled();
 
+	ImGui::PopStyleColor(3);
+
+	// 상태 표시는 버튼 묶음 오른쪽에 (가운데 정렬 계산에는 넣지 않는다)
+	ImGui::SameLine(0.0f, spacing * 3.0f);
+	ImGui::AlignTextToFramePadding();
 	switch (state)
 	{
 	case PlayState::Edit:    ImGui::TextDisabled("EDIT"); break;

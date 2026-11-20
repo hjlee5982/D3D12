@@ -27,7 +27,13 @@ using namespace EditorUtil;
 
 void InspectorPanel::Draw()
 {
-	if (!ImGui::Begin("Inspector"))
+	if (!_ctx.PrepareWindow(EditorWindow::Inspector))
+	{
+		return;
+	}
+	const bool visible = ImGui::Begin("Inspector");
+	_ctx.HandleWindowTitleClick(EditorWindow::Inspector);
+	if (!visible)
 	{
 		ImGui::End();
 		return;
@@ -398,6 +404,7 @@ void InspectorPanel::DrawField(Component* component, const FieldInfo& field)
 		{
 			auto& handle = *reinterpret_cast<TextureHandle*>(address);
 			ResourceCombo(label, handle, resources->ListTextures(), resources->IsAlive(handle));
+			AcceptAssetDrop(resources, handle); // Project 창에서 끌어다 놓기
 		}
 		break;
 
@@ -406,6 +413,7 @@ void InspectorPanel::DrawField(Component* component, const FieldInfo& field)
 		{
 			auto& handle = *reinterpret_cast<ShaderHandle*>(address);
 			ResourceCombo(label, handle, resources->ListShaders(), resources->IsAlive(handle));
+			AcceptAssetDrop(resources, handle);
 		}
 		break;
 

@@ -19,7 +19,7 @@
           "type": "Transform",
           "enabled": true,
           "fields": {
-            "position": [0, 0, 0],
+            "position": [-1.05166531, 0.0399244428, 0],
             "rotation": [0, -0.341834009, -0, 0.939760387],
             "scale": [1, 1, 1]
           }
@@ -39,6 +39,23 @@
             "target": 1,
             "offset": [0.100000001, 0, 0],
             "sharpness": 6
+          }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "GameObject",
+      "active": true,
+      "parent": 1,
+      "components": [
+        {
+          "type": "Transform",
+          "enabled": true,
+          "fields": {
+            "position": [0, 0, 0],
+            "rotation": [0, 0, 0, 1],
+            "scale": [1, 1, 1]
           }
         }
       ]

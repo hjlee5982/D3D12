@@ -44,5 +44,8 @@
     <ClCompile Include="Follower.cpp">
       <Filter>02. Component</Filter>
     </ClCompile>
+    <ClCompile Include="..\Engine\public\SimpleMath.cpp">
+      <Filter>00. Header</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
